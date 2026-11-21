@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0E0F13" />
+<title>拾光相册 · 手机配置</title>
+<style>
+  /* ============================ 设计令牌 ============================ */
+  :root{
+    --accent:#FF6900;
+    --accent-ink:#111;
+    --bg:#0E0F13; --surface:#17191F; --surface2:#1F222A; --surface3:#262A34;
+    --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+    --text:#F2F4F8; --muted:#9BA1AE; --faint:#6B7280;
+    --danger:#FF5D5D; --ok:#3ED598;
+    --shadow:0 12px 32px rgba(0,0,0,.38), 0 2px 6px rgba(0,0,0,.24);
+    --radius:16px; --radius-sm:11px;
+  }
+  :root[data-theme="light"]{
+    --bg:#F3F4F7; --surface:#FFFFFF; --surface2:#F2F3F8; --surface3:#E9EBF2;
+    --line:rgba(16,18,28,.08); --line-strong:rgba(16,18,28,.16);
+    --text:#14161C; --muted:#5F6675; --faint:#8A91A0;
+    --accent-ink:#fff;
+    --shadow:0 10px 26px rgba(20,24,40,.10), 0 2px 5px rgba(20,24,40,.06);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+    font-size:15px;line-height:1.55; -webkit-font-smoothing:antialiased}
+  body{min-height:100vh; position:relative; overflow-x:hidden}
+  /* 壁纸层：与电视端同一套渐变预设 */
+  #wallpaper{position:fixed;inset:0;z-index:-2;background:var(--bg);transition:background .5s ease}
+  #veil{position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.06), transparent 60%),
+               linear-gradient(180deg, transparent 0%, var(--bg) 78%)}
+  :root[data-theme="light"] #veil{
+    background:radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.75), transparent 62%),
+               linear-gradient(180deg, transparent 0%, var(--bg) 82%)}
+
+  /* ============================ 头部 ============================ */
+  header{position:sticky;top:0;z-index:20;padding:16px 16px 10px;
+    background:linear-gradient(180deg, var(--bg) 55%, transparent);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px)}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+    background:linear-gradient(140deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #000));
+    box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 34%, transparent)}
+  .logo svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.9;
+    stroke-linecap:round;stroke-linejoin:round}
+  .brand h1{font-size:17px;font-weight:650;margin:0;letter-spacing:.2px}
+  .status{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:12px;color:var(--muted)}
+  .status .led{width:6px;height:6px;border-radius:50%;background:var(--ok);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent)}
+  .status.off .led{background:var(--danger);box-shadow:0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent)}
+
+  /* ============================ 主区 ============================ */
+  main{padding:6px 14px 108px;max-width:720px;margin:0 auto}
+  .page-title{font-size:22px;font-weight:680;margin:8px 2px 4px;letter-spacing:.2px}
+  .page-desc{color:var(--muted);font-size:13px;margin:0 2px 14px}
+
+  .card{background:var(--surface);background:color-mix(in srgb, var(--surface) 92%, transparent);
+    border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 13px;
+    margin-bottom:12px;box-shadow:var(--shadow);backdrop-filter:blur(10px);
+    transition:transform .16s ease, border-color .2s ease}
+  .card:active{transform:scale(.995)}
+  .card .top{display:flex;gap:12px;align-items:flex-start}
+  .grow{flex:1;min-width:0}
+  .title{font-size:16px;font-weight:640;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;letter-spacing:.2px}
+  .meta{color:var(--muted);font-size:12.5px;margin-top:3px;
+    display:flex;flex-wrap:wrap;gap:4px 8px}
+  .meta .sep{opacity:.4}
+
+  /* 清单封面 */
+  .cover{width:64px;height:64px;border-radius:13px;flex:0 0 64px;overflow:hidden;
+    background:linear-gradient(140deg, var(--surface3), var(--surface2));
+    display:grid;place-items:center;border:1px solid var(--line);position:relative}
+  .cover img{width:100%;height:100%;object-fit:cover}
+  .cover .cnt{position:absolute;right:4px;bottom:4px;font-size:10px;font-weight:600;
+    padding:1px 5px;border-radius:6px;background:rgba(0,0,0,.62);color:#fff;
+    backdrop-filter:blur(4px)}
+  .cover svg{width:24px;height:24px;stroke:var(--faint);fill:none;stroke-width:1.6}
+
+  /* 卡片整块可点：手机上"点卡片任意位置进编辑"比找小按钮顺手 */
+  .card[data-open]{cursor:pointer}
+  .card[data-open] .top{border-radius:12px;transition:background .15s ease}
+  .card[data-open]:active .top{background:color-mix(in srgb, var(--surface3) 55%, transparent)}
+
+  /* 音乐曲目列表 */
+  .tracks{margin-top:10px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:var(--surface2)}
+  .track{display:flex;align-items:center;gap:10px;padding:9px 11px;
+    border-bottom:1px solid var(--line)}
+  .track:last-child{border-bottom:none}
+  .tno{width:22px;height:22px;border-radius:50%;background:var(--surface3);color:var(--muted);
+    font-size:11.5px;display:grid;place-items:center;flex:0 0 22px;font-weight:650}
+  .tinfo{min-width:0}
+  .tname{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tkind{font-size:11.5px;color:var(--faint);margin-top:1px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .icobtn{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+    background:transparent;color:var(--muted);font-size:14px;flex:0 0 34px;
+    display:grid;place-items:center;font-family:inherit;transition:background .15s ease}
+  .icobtn:active{background:var(--surface3);color:var(--text)}
+  .icobtn.danger{color:var(--danger);
+    border-color:color-mix(in srgb, var(--danger) 34%, transparent)}
+
+  /* 拖拽手柄 */
+  .drag{width:30px;flex:0 0 30px;align-self:stretch;border-radius:9px;background:var(--surface2);
+    display:grid;place-items:center;color:var(--faint);touch-action:none;cursor:grab;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent;
+    border:1px solid var(--line)}
+  .drag:active{cursor:grabbing;color:var(--accent);border-color:var(--accent)}
+  .drag svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .chip{background:var(--surface2);border:1px solid var(--line);border-radius:20px;
+    padding:4px 10px;font-size:12px;color:var(--muted);max-width:100%;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip.plain{background:transparent}
+
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line-strong);background:var(--surface2);color:var(--text);
+    border-radius:var(--radius-sm);padding:9px 14px;font-size:14px;font-weight:550;
+    transition:transform .14s ease, background .2s ease, border-color .2s ease;
+    font-family:inherit}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:640}
+  .btn.danger{background:transparent;border-color:color-mix(in srgb, var(--danger) 42%, transparent);
+    color:var(--danger)}
+  .btn.ghost{background:transparent;border-color:var(--line-strong);color:var(--muted)}
+  .btn.sm{padding:6px 11px;font-size:13px;border-radius:9px}
+  .btn.wide{flex:1;text-align:center}
+  .btn:disabled{opacity:.42}
+
+  /* 浮动主按钮 */
+  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));
+    z-index:30;padding:13px 26px;border-radius:16px;border:none;
+    background:linear-gradient(140deg, var(--accent), color-mix(in srgb, var(--accent) 72%, #000));
+    color:var(--accent-ink);font-size:15.5px;font-weight:680;font-family:inherit;
+    box-shadow:0 10px 26px color-mix(in srgb, var(--accent) 40%, transparent);
+    display:flex;align-items:center;gap:8px;transition:transform .15s ease}
+  .fab:active{transform:translateX(-50%) scale(.96)}
+  .fab svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+
+  /* ============================ 底部导航 ============================ */
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    background:color-mix(in srgb, var(--surface) 88%, transparent);
+    border-top:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  nav button{flex:1;background:none;border:none;padding:6px 0 4px;color:var(--faint);
+    font-family:inherit;font-size:11px;font-weight:550;display:flex;flex-direction:column;
+    align-items:center;gap:4px;transition:color .18s ease;position:relative}
+  nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
+  nav button.active{color:var(--accent)}
+  nav button.active svg{transform:translateY(-1px) scale(1.06)}
+  nav button.active::after{content:"";position:absolute;top:0;width:22px;height:3px;
+    border-radius:0 0 3px 3px;background:var(--accent)}
+
+  /* ============================ 表单 ============================ */
+  label.field{display:block;margin-bottom:13px}
+  label.field > span{display:block;font-size:12.5px;color:var(--muted);margin-bottom:7px;
+    font-weight:550;letter-spacing:.2px}
+  input[type=text],input[type=password],input[type=number],select,textarea{
+    width:100%;background:var(--surface2);border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm);color:var(--text);padding:11px 12px;font-size:15px;
+    font-family:inherit;outline:none;transition:border-color .18s ease, background .18s ease;
+    -webkit-appearance:none;appearance:none}
+  textarea{resize:vertical;line-height:1.5}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 6%, var(--surface2))}
+  select{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.5L6 8.5L10 4.5' stroke='%23888' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+  /* 滑块要占满整行：以前只写了 height，宽度退回浏览器默认的 ~150px，
+     手机上看着就是"一小截"。100% 撑满卡片可用宽度（也就是屏幕宽减两侧内边距） */
+  input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;
+    height:30px;margin:2px 0;background:transparent;touch-action:pan-y}
+  /* 轨道用纯色 + 半透明覆盖：color-mix 在 Chrome 111 以下不支持，
+     整条 background 声明会被丢掉，滑块就"看不见轨道"了 */
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;
+    background:var(--accent);opacity:.9}
+  input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--accent)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;
+    border-radius:50%;background:#fff;border:2px solid var(--accent);margin-top:-9px;
+    box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .row2{display:flex;gap:10px}
+  .row2 > *{flex:1;min-width:0}
+
+  /* 开关行 */
+  .switch{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--surface2);border:1px solid var(--line-strong);border-radius:var(--radius-sm);
+    padding:11px 12px;margin-bottom:12px}
+  .switch > div{min-width:0}
+  .switch .s-title{font-size:14px;font-weight:550}
+  .switch .s-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .switch input[type=checkbox]{width:0;height:0;opacity:0;position:absolute}
+  .toggle{width:46px;height:27px;flex:0 0 46px;border-radius:16px;background:var(--surface3);
+    border:1px solid var(--line-strong);position:relative;transition:background .2s ease;
+    cursor:pointer}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;
+    border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.3);
+    transition:transform .2s cubic-bezier(.34,1.4,.64,1)}
+  .switch input:checked + .toggle{background:var(--accent);border-color:transparent}
+  .switch input:checked + .toggle::after{transform:translateX(19px)}
+
+  /* 分段选择 */
+  .segmented{display:flex;background:var(--surface2);border:1px solid var(--line-strong);
+    border-radius:13px;padding:3px;gap:3px;margin-bottom:13px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .segmented::-webkit-scrollbar{display:none}
+  .segmented button{flex:1 0 auto;border:none;background:none;color:var(--muted);font-family:inherit;
+    font-size:13.5px;font-weight:550;padding:9px 10px;border-radius:10px;white-space:nowrap;
+    transition:background .2s ease, color .2s ease}
+  .segmented button.active{background:var(--accent);color:var(--accent-ink);
+    box-shadow:0 3px 10px color-mix(in srgb, var(--accent) 32%, transparent)}
+
+  /* 手机端兜底：任何一行都不许把页面撑宽，否则 iOS/安卓浏览器只能看到左半屏且无法横向滚动 */
+  img,video,canvas,svg{max-width:100%}
+  .wpscroll img{max-width:none}
+  .card,.entry,.title{min-width:0}
+
+  .hint{color:var(--faint);font-size:12px;margin:-6px 0 12px;line-height:1.5}
+  .sec-title{font-size:12.5px;color:var(--faint);font-weight:600;letter-spacing:.6px;
+    text-transform:uppercase;margin:20px 2px 10px}
+
+  /* 色板 */
+  .swatches{display:flex;gap:14px;flex-wrap:wrap}
+  .switem{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .switem span{font-size:11px;color:var(--muted);white-space:nowrap}
+  .sw{width:42px;height:42px;border-radius:14px;border:2px solid transparent;position:relative;
+    transition:transform .16s ease}
+  .sw:active{transform:scale(.92)}
+  .sw.on{border-color:var(--text);box-shadow:0 0 0 3px color-mix(in srgb, var(--text) 12%, transparent)}
+  .sw.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;
+    color:#fff;font-size:15px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+
+  /* 壁纸网格 */
+  .wpgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:6px}
+  .wp{aspect-ratio:1/1;border-radius:13px;border:2px solid transparent;overflow:hidden;
+    position:relative;display:grid;place-items:end center;transition:transform .16s ease}
+  .wp:active{transform:scale(.95)}
+  .wp span{font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.42);
+    width:100%;text-align:center;padding:3px 0;backdrop-filter:blur(4px)}
+  .wp.on{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent)}
+  .wp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+  /* 图片壁纸预览：横图不会被裁死，手机上左右滑动就能看全 */
+  .wpscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    border-radius:13px;background:var(--surface2);touch-action:pan-x pan-y}
+  .wpscroll img{display:block;height:172px;width:auto;max-width:none;border-radius:13px}
+  .wpscroll .ph{height:172px;display:grid;place-items:center;color:var(--muted);font-size:13px}
+  .entry .pthumb{width:46px;height:46px;border-radius:9px;object-fit:cover;flex:0 0 46px;
+    background:var(--surface2)}
+
+  /* ============================ 弹层 ============================ */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:50;display:flex;
+    align-items:flex-end;justify-content:center;
+    animation:fadeIn .18s ease;backdrop-filter:blur(3px)}
+  .sheet{width:100%;max-width:720px;max-height:93vh;background:var(--surface);
+    border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 -12px 40px rgba(0,0,0,.4);animation:slideUp .26s cubic-bezier(.32,.9,.4,1)}
+  .sheet header{position:static;background:transparent;padding:8px 16px 12px;
+    border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .sheet header::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
+    width:38px;height:4px;border-radius:2px;background:var(--line-strong)}
+  .sheet header .title{font-size:16.5px}
+  .sheet .body{padding:16px;overflow:auto;-webkit-overflow-scrolling:touch;flex:1}
+  .sheet .foot{padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);display:flex;gap:10px;background:var(--surface)}
+  .sheet .foot .btn{flex:1;text-align:center;padding:12px}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideUp{from{transform:translateY(28px);opacity:.6}to{transform:translateY(0);opacity:1}}
+
+  /* 文件浏览 */
+  .crumb{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:12px;
+    padding:8px 0 10px;overflow:auto;white-space:nowrap}
+  .crumb b{color:var(--text);font-weight:600;font-family:ui-monospace,monospace}
+  .entry{display:flex;align-items:center;gap:11px;padding:12px 6px;
+    border-bottom:1px solid var(--line);transition:background .15s ease}
+  .entry:last-child{border-bottom:none}
+  .entry:active{background:var(--surface2)}
+  .entry .ico{width:24px;text-align:center;color:var(--muted);flex:0 0 24px}
+  .entry .ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round}
+  .entry .name{flex:1;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .entry .meta-r{font-size:11.5px;color:var(--faint);flex:0 0 auto}
+  .entry input[type=checkbox]{width:21px;height:21px;accent-color:var(--accent);flex:0 0 21px}
+  .srcpick{display:flex;gap:8px;overflow:auto;padding:2px 0 12px}
+  .srcpick .btn{white-space:nowrap;flex:0 0 auto}
+  .srcpick .btn.active{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+
+  .empty{color:var(--muted);text-align:center;padding:56px 24px;font-size:14px;line-height:1.7}
+  .empty .big{font-size:38px;margin-bottom:10px;opacity:.5}
+  .badge{font-size:11px;padding:2.5px 8px;border-radius:7px;background:var(--surface2);
+    color:var(--muted);border:1px solid var(--line-strong);font-weight:550;white-space:nowrap}
+  .badge.ok{color:var(--ok);border-color:color-mix(in srgb, var(--ok) 40%, transparent);
+    background:color-mix(in srgb, var(--ok) 12%, transparent)}
+  .badge.bad{color:var(--danger);border-color:color-mix(in srgb, var(--danger) 40%, transparent);
+    background:color-mix(in srgb, var(--danger) 12%, transparent)}
+  .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);z-index:70;background:color-mix(in srgb, var(--surface) 94%, #000);
+    border:1px solid var(--line-strong);color:var(--text);padding:11px 18px;
+    border-radius:12px;font-size:14px;max-width:88vw;text-align:center;box-shadow:var(--shadow);
+    animation:slideUp .2s ease}
+  .dragging{opacity:.75;border-color:var(--accent)!important;transform:none!important;
+    position:relative;z-index:5;box-shadow:var(--shadow),
+      0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent)!important}
+
+  /* 老浏览器（不支持 color-mix）的兜底：退回纯色，保证不至于透明看不清 */
+  @supports not (background: color-mix(in srgb, red, blue)){
+    .card{background:var(--surface);backdrop-filter:none}
+    nav{background:var(--surface)}
+    .fab,.logo,.btn.primary,.segmented button.active{
+      background:var(--accent);box-shadow:none}
+    .toast{background:var(--surface)}
+    .sheet{background:var(--surface)}
+  }
+</style>
+</head>
+<body>
+<div id="wallpaper"></div>
+<div id="veil"></div>
+
+<header>
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M3.5 16.5l4.6-4 3.4 3 2.6-2.2 3.6 3.4"/></svg>
+    </div>
+    <div class="grow">
+      <h1>拾光相册</h1>
+      <div class="status" id="status"><span class="led"></span><span id="sub">正在连接电视…</span></div>
+    </div>
+  </div>
+</header>
+
+<main id="view"></main>
+<div id="modal"></div>
+<div id="modal2"></div>
+<div id="toast"></div>
+
+<nav id="nav">
+  <button data-tab="playlists" class="active">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1.8"/><rect x="14" y="4" width="7" height="7" rx="1.8"/><rect x="3" y="13" width="7" height="7" rx="1.8"/><rect x="14" y="13" width="7" height="7" rx="1.8"/></svg>
+    <span>清单</span>
+  </button>
+  <button data-tab="sources">
+    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+    <span>存储源</span>
+  </button>
+  <button data-tab="appearance">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 3.6a8.4 8.4 0 0 0 0 16.8z"/></svg>
+    <span>外观</span>
+  </button>
+  <button data-tab="settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-2.87 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 3 14.9H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 2.6V3a2 2 0 1 1 4 0v.1A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    <span>设置</span>
+  </button>
+</nav>
+
+<script>
+/* ============================ 基础工具 ============================ */
+const params = new URLSearchParams(location.search);
+let PIN = params.get('pin') || localStorage.getItem('tv_pin') || '';
+if (params.get('pin')) localStorage.setItem('tv_pin', params.get('pin'));
+
+let state = { sources: [], playlists: [], appearance: {}, revision: 0, url: '' };
+let tab = 'playlists';
+let ws = null;
+// 拖拽中的临时状态。必须在这里先声明：render() 一开始就要读它，
+// 而 render() 有可能在脚本后面的 `let dragState` 执行之前就被调用（TDZ 会直接报错）。
+let dragState = null;
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const view = $('#view');
+const modal = $('#modal');
+const modal2 = $('#modal2');
+
+/* 与电视端一致的常量 */
+const ACCENTS = [
+  ['小米橙', 0xFFFF6900], ['晴空蓝', 0xFF3B82F6], ['翡翠绿', 0xFF10B981],
+  ['玫瑰红', 0xFFF43F5E], ['紫罗兰', 0xFF8B5CF6], ['琥珀金', 0xFFF59E0B]
+];
+/* 和电视端 ui/components/BuiltinWallpapers.kt 一一对应：
+   底色三段渐变 + 三个径向光斑，手机和电视看到的壁纸是同一套 */
+const WALLPAPERS = [
+  { name: '星夜蓝', base: ['#070C1E', '#0E2246', '#05070F'], glow: ['#3B82F6', '#22D3EE', '#6366F1'],
+    light: ['#EEF3FF', '#FFFFFF', '#E7EEFF'], lightGlow: ['#93C5FD', '#A5F3FC', '#BFDBFE'] },
+  { name: '落日橙', base: ['#180703', '#3A1608', '#0E0402'], glow: ['#FF6900', '#FBBF24', '#F43F5E'],
+    light: ['#FFF3E8', '#FFFBF6', '#FFE9D6'], lightGlow: ['#FDBA74', '#FDE68A', '#FDA4AF'] },
+  { name: '极光绿', base: ['#03100C', '#0A2F26', '#020A08'], glow: ['#10B981', '#34D399', '#22D3EE'],
+    light: ['#E9FBF4', '#F7FFFC', '#DDF5EA'], lightGlow: ['#6EE7B7', '#A7F3D0', '#99F6E4'] },
+  { name: '玫瑰紫', base: ['#12061A', '#2C1040', '#0A0310'], glow: ['#A855F7', '#EC4899', '#6366F1'],
+    light: ['#F8EFFF', '#FFF7FF', '#F3E3FF'], lightGlow: ['#D8B4FE', '#F9A8D4', '#E9D5FF'] },
+  { name: '石墨灰', base: ['#09090C', '#191921', '#050507'], glow: ['#64748B', '#94A3B8', '#475569'],
+    light: ['#F2F3F7', '#FCFCFE', '#EDEFF4'], lightGlow: ['#CBD5E1', '#E2E8F0', '#DDE3EC'] },
+  { name: '晨曦粉', base: ['#1A0A12', '#3D1930', '#10060C'], glow: ['#F472B6', '#FDA4AF', '#FB923C'],
+    light: ['#FFF0F5', '#FFFAFC', '#FFE4EE'], lightGlow: ['#FBCFE8', '#FECDD3', '#FED7AA'] }
+];
+
+function rgbaHex(h, a) {
+  const n = parseInt(h.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
+function wpCss(p, dark) {
+  const base = dark ? p.base : p.light;
+  const glow = dark ? p.glow : p.lightGlow;
+  const a = dark ? 0.5 : 0.55;
+  return `radial-gradient(circle at 18% 88%, ${rgbaHex(glow[0], a)}, transparent 62%),`
+    + `radial-gradient(circle at 90% 42%, ${rgbaHex(glow[1], a)}, transparent 62%),`
+    + `radial-gradient(circle at 62% 0%, ${rgbaHex(glow[2], a)}, transparent 55%),`
+    + `linear-gradient(165deg, ${base[0]}, ${base[1]} 52%, ${base[2]})`;
+}
+const EFFECTS = { FADE: '淡入淡出', SLIDE_H: '左右滑动', SLIDE_V: '上下滑动',
+  ZOOM: '缩放推进', ROTATE: '旋转翻页', MOSAIC: '马赛克溶解', RANDOM: '随机动效' };
+const ORDERS = { SEQUENCE: '顺序播放', SHUFFLE: '随机播放', LOOP: '单张循环' };
+const MODES = { AUTO: '自动播放', MANUAL: '手动播放' };
+// 播完之后：循环 / 停在最后一张 / 回首页。老配置没有这个字段，按循环处理
+const END_ACTIONS = { LOOP: '循环播放', HOLD_LAST: '停在最后一张', BACK_HOME: '回到首页' };
+const TYPES = { LOCAL: '本地存储', WEBDAV: 'WebDAV', SMB: 'SMB 共享' };
+const THEME_NAMES = { DARK: '深色', LIGHT: '浅色', AUTO: '跟随系统' };
+
+const ICON = {
+  folder: '<svg viewBox="0 0 24 24"><path d="M3 7.5A2 2 0 0 1 5 5.5h3.6a2 2 0 0 1 1.5.7l.9 1.1h6A2 2 0 0 1 19 9.3v7.2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  image: '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M3.5 16l4.8-4.2 3.4 3 2.7-2.3 3.6 3.5"/></svg>',
+  audio: '<svg viewBox="0 0 24 24"><path d="M9 18V6.5l9-2v11.5"/><circle cx="6.8" cy="18" r="2.4"/><circle cx="15.8" cy="16" r="2.4"/></svg>',
+  video: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="2.2"/><path d="M16 10.5l5-2.8v8.6l-5-2.8z"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  grip: '<svg viewBox="0 0 24 24"><path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01" stroke-width="2.4"/></svg>',
+  gallery: '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M3.5 16l4.8-4.2 3.4 3 2.7-2.3 3.6 3.5"/></svg>'
+};
+
+function hex(n) {
+  const v = (typeof n === 'number' && n > 0) ? n : 0xFFFF6900;
+  return '#' + ((v >>> 0) & 0xFFFFFF).toString(16).padStart(6, '0');
+}
+
+function withPin(url) {
+  if (!PIN) return url;
+  return url + (url.includes('?') ? '&' : '?') + 'pin=' + encodeURIComponent(PIN);
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(withPin('/api/' + path), {
+    headers: { 'Content-Type': 'application/json', 'X-Pin': PIN },
+    ...opts
+  });
+  if (res.status === 401) {
+    const p = prompt('请输入电视端设置的访问密码');
+    if (p) { PIN = p; localStorage.setItem('tv_pin', p); return api(path, opts); }
+    throw new Error('需要访问密码');
+  }
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+  if (!res.ok) throw new Error((data && data.error) || ('HTTP ' + res.status));
+  return data;
+}
+
+function toast(msg, ms = 2200) {
+  const box = $('#toast');
+  box.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'toast';
+  div.textContent = msg;
+  box.appendChild(div);
+  clearTimeout(div._t);
+  div._t = setTimeout(() => div.remove(), ms);
+}
+
+/** 把 #RRGGBB 往黑色混 [factor]，避免依赖 color-mix（老 WebView 不支持会整条失效） */
+function shade(hexColor, factor) {
+  const n = parseInt(String(hexColor).replace('#', ''), 16);
+  const r = Math.round(((n >> 16) & 255) * factor);
+  const g = Math.round(((n >> 8) & 255) * factor);
+  const b = Math.round((n & 255) * factor);
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function sourceName(id) {
+  const s = state.sources.find(x => x.id === id);
+  return s ? s.name : '（已删除的源）';
+}
+
+/**
+ * 电视所在网段前缀，如 "192.168.31."
+ * 配置页本身就是电视发出来的，所以 location.hostname 就是电视的 IP，
+ * 添加 NAS 时把前三段填好，用户只需补最后一段。
+ */
+function subnetPrefix() {
+  const host = location.hostname || '';
+  const parts = host.split('.');
+  if (parts.length === 4 && parts.every(p => /^\d+$/.test(p))) {
+    return parts.slice(0, 3).join('.') + '.';
+  }
+  return '192.168.1.';
+}
+/* size = 长边像素。50x50 的列表小图和整屏壁纸不该吃同一张图：
+   小图让电视端压到 180px，一张几 KB；壁纸才要 1080。 */
+function thumbUrl(sourceId, path, size) {
+  const q = `sourceId=${encodeURIComponent(sourceId)}&path=${encodeURIComponent(path)}`;
+  return withPin(`/api/thumb?${q}${size ? '&size=' + size : ''}`);
+}
+
+/* ============================ 外观：即时应用到本页 ============================ */
+function currentDark() {
+  const mode = (state.appearance && state.appearance.themeMode) || 'DARK';
+  if (mode === 'LIGHT') return false;
+  if (mode === 'AUTO') return !window.matchMedia('(prefers-color-scheme: light)').matches;
+  return true;
+}
+
+function applyAppearance() {
+  const a = state.appearance || {};
+  const dark = currentDark();
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  const acc = hex(a.accentColor);
+  document.documentElement.style.setProperty('--accent', acc);
+  document.documentElement.style.setProperty('--accent-ink', dark ? '#111' : '#fff');
+
+  const wp = $('#wallpaper');
+  const kind = a.wallpaperKind || 'GRADIENT';
+  const imgUrl = (kind === 'IMAGE' && a.wallpaperSourceId && a.wallpaperPath)
+    ? thumbUrl(a.wallpaperSourceId, a.wallpaperPath, 1080)
+    : '';
+  if (imgUrl) {
+    // 图片壁纸：整页跟着用户的照片走（之前这里是空的，所以选了图也看不到）
+    wp.style.backgroundImage = `url("${imgUrl}")`;
+    wp.style.backgroundSize = 'cover';
+    wp.style.backgroundPosition = 'center';
+    wp.style.backgroundColor = '#000';
+    wp.style.filter = a.wallpaperBlur ? 'blur(3px)' : 'none';
+  } else if (kind === 'GRADIENT' || kind === 'IMAGE') {
+    const preset = WALLPAPERS[a.wallpaperPreset] || WALLPAPERS[0];
+    wp.style.filter = 'none';
+    wp.style.backgroundImage = 'none';
+    wp.style.background = wpCss(preset, dark);
+  } else {
+    wp.style.filter = 'none';
+    wp.style.backgroundImage = '';
+    wp.style.background = 'var(--bg)';
+  }
+  const meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.setAttribute('content', dark ? '#0E0F13' : '#F3F4F7');
+}
+
+/* ============================ 数据同步 ============================ */
+async function loadState(silent) {
+  try {
+    const data = await api('state');
+    state = data;
+    if (!state.appearance) state.appearance = {};
+    const st = $('#status');
+    st.classList.remove('off');
+    $('#sub').textContent =
+      `已连接 · ${state.playlists.length} 个清单 · ${state.sources.length} 个源`;
+    applyAppearance();
+    render();
+  } catch (e) {
+    if (!silent) {
+      $('#status').classList.add('off');
+      $('#sub').textContent = '连接失败：' + e.message;
+    }
+  }
+}
+
+function connectWs() {
+  try {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    ws = new WebSocket(`${proto}://${location.host}/api/ws${PIN ? '?pin=' + encodeURIComponent(PIN) : ''}`);
+    ws.onmessage = ev => {
+      try {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === 'state') loadState(true);
+      } catch (e) {}
+    };
+    ws.onclose = () => setTimeout(connectWs, 3000);
+    ws.onerror = () => { try { ws.close(); } catch (e) {} };
+  } catch (e) {}
+}
+
+/* ============================ 渲染入口 ============================ */
+function render() {
+  // 拖拽中绝不重建 DOM。
+  // WebSocket 每收到一次状态推送就走 loadState → render → view.innerHTML，
+  // 正在被拖的那个节点会被整个换掉，指针还按着却已经是个孤儿节点，
+  // 表现就是「长按有反馈、手指一动就断」。状态已经写进 state，稍后自然会被下一次渲染带出来。
+  if (dragState) return;
+  document.querySelectorAll('#nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  if (tab === 'playlists') renderPlaylists();
+  else if (tab === 'sources') renderSources();
+  else if (tab === 'appearance') renderAppearance();
+  else renderSettings();
+}
+
+document.querySelectorAll('#nav button').forEach(b => {
+  b.onclick = () => {
+    tab = b.dataset.tab;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    render();
+  };
+});
+
+/* ============================ 播放清单 ============================ */
+function renderPlaylists() {
+  const list = state.playlists.slice().sort((a, b) => a.sortIndex - b.sortIndex);
+  if (!list.length) {
+    view.innerHTML = `<div class="page-title">播放清单</div>
+      <div class="page-desc">一个清单 = 一组文件夹 + 一首背景音乐 + 一种切换动效</div>
+      <div class="empty"><div class="big">🖼</div>
+        还没有播放清单<br/>点下面的按钮新建：先选几个文件夹，<br/>再挑背景音乐和切换动效。
+      </div>
+      <button class="fab" id="addPl">${ICON.plus} 新建播放清单</button>`;
+    $('#addPl').onclick = () => openPlaylistEditor(null);
+    return;
+  }
+
+  view.innerHTML = `<div class="page-title">播放清单</div>
+    <div class="page-desc">共 ${list.length} 个 · 按住左侧手柄上下拖动可调整顺序</div>`
+    + list.map(p => {
+      const folders = (p.folders || []).map(f =>
+        `<span class="chip">${esc(sourceName(f.sourceId))} · ${esc(f.path || '/')}</span>`).join('');
+      const mi = p.music || {};
+      const trackCount = (mi.tracks || []).length;
+      const music = !mi.enabled ? '无背景音乐'
+        : trackCount > 1 ? ('音乐 ' + trackCount + ' 首')
+        : trackCount === 1 ? ('音乐 · ' + (mi.tracks[0].online
+            ? (mi.tracks[0].online.name || '在线歌曲') : '已选 1 首'))
+        : mi.customUrl ? '直链音乐'
+        : mi.online ? ('在线 · ' + (mi.online.name || '已选歌曲'))
+        : mi.file ? '本地音乐已选' : '音乐未选择';
+      // 缩略图：优先手动封面，其次电视端算好的「第一张图」。
+      // 手动封面如果是 HEIC/RAW 这类浏览器也解不了的格式，<img> 会直接空白，
+      // 所以按扩展名过滤一下，宁可回落到自动首图。
+      const okExt = /\.(jpe?g|png|webp|gif|bmp)$/i;
+      const manual = (p.coverFile && okExt.test(p.coverFile.path || '')) ? p.coverFile : null;
+      const coverRef = manual || p.autoCover || null;
+      const cover = coverRef
+        ? `<img src="${thumbUrl(coverRef.sourceId, coverRef.path, 180)}" alt="" loading="lazy"
+             onerror="this.style.display='none'"/>`
+        : ICON.gallery;
+      return `<div class="card" data-id="${esc(p.id)}" data-open="${esc(p.id)}">
+        <div class="top">
+          <div class="drag" data-drag="${esc(p.id)}">${ICON.grip}</div>
+          <div class="cover">${cover}${
+            p.cachedCount ? `<span class="cnt">${p.cachedCount}</span>` : ''}</div>
+          <div class="grow">
+            <div class="title">${esc(p.name)}</div>
+            <div class="meta">
+              <span>${(p.folders || []).length} 个文件夹</span><span class="sep">·</span>
+              <span>${EFFECTS[p.effect] || p.effect}</span><span class="sep">·</span>
+              <span>${MODES[p.playMode] || p.playMode}</span>
+            </div>
+            <div class="meta">
+              <span>${ORDERS[p.order] || p.order}</span><span class="sep">·</span>
+              <span>${p.staySeconds}s</span><span class="sep">·</span>
+              ${p.endAction && p.endAction !== 'LOOP'
+                ? `<span>播完${END_ACTIONS[p.endAction] || p.endAction}</span><span class="sep">·</span>` : ''}
+              <span>${esc(music)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="chips">${folders || '<span class="chip">还没选文件夹</span>'}</div>
+        <div class="actions">
+          <button class="btn sm" data-edit="${esc(p.id)}">编辑</button>
+          <button class="btn sm ghost" data-copy="${esc(p.id)}">复制</button>
+          <button class="btn sm danger" data-del="${esc(p.id)}">删除</button>
+        </div>
+      </div>`;
+    }).join('')
+    + `<button class="fab" id="addPl">${ICON.plus} 新建播放清单</button>`;
+
+  $('#addPl').onclick = () => openPlaylistEditor(null);
+  view.querySelectorAll('[data-open]').forEach(cardEl => {
+    cardEl.addEventListener('click', ev => {
+      // 按钮、拖拽手柄有自己的动作，别被"点卡片进编辑"抢走
+      if (ev.target.closest('button,.drag')) return;
+      const p = state.playlists.find(x => x.id === cardEl.dataset.open);
+      if (p) openPlaylistEditor(p);
+    });
+  });
+  view.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => {
+    const p = state.playlists.find(x => x.id === b.dataset.edit);
+    if (p) openPlaylistEditor(p);
+  });
+  view.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    try { await api('playlists/' + b.dataset.copy + '/duplicate', { method: 'POST' }); toast('已复制'); loadState(true); }
+    catch (e) { toast('复制失败：' + e.message); }
+  });
+  view.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    const p = state.playlists.find(x => x.id === b.dataset.del);
+    if (!confirm(`删除清单「${p ? p.name : ''}」？照片文件不会被删除。`)) return;
+    try { await api('playlists/' + b.dataset.del, { method: 'DELETE' }); toast('已删除'); loadState(true); }
+    catch (e) { toast('删除失败：' + e.message); }
+  });
+
+  enableDragSort();
+}
+
+/* ---------- 拖拽排序 ----------
+   这块前后改过三次，把踩过的坑记在这里，免得以后又改回去：
+
+   1) 不能只用 Pointer Events。电视盒子的 Android 7.1 内置 WebView 是 Chromium 53，
+      Pointer Events 要 Chrome 55 才有；手机上的微信/国产浏览器也未必稳。
+      所以 touch / pointer / mouse 三条通道全绑，谁先到谁生效，靠 dragState 去重。
+   2) move / end 必须挂在 document 上，不能挂在手柄上。手柄只有 30px 宽，
+      手指一滑出去就收不到事件，看起来就是「拖到一半卡住」。
+   3) 拖拽一开始就要把页面的滚动手势关掉（body 的 touch-action:none）。
+      否则浏览器判定「你这是在滑页面」会直接发 touchcancel 把拖拽掐断，
+      微信内置浏览器上这个现象最明显：长按有反馈，手指一动就没了。
+      注意只关 touch-action，别去改 overflow —— 那会让下面的贴边自动滚动失效。
+   4) render() 开头有 `if (dragState) return`。WebSocket 每收到一次状态推送都会
+      走 loadState → render → view.innerHTML 重建整块列表，正在拖的节点被换成新节点，
+      指针还按着却已经是个孤儿，表现同样是「长按有反馈、一动就断」。
+   5) 换位只跟紧邻的上一张/下一张比中线，越过才换（滞回）。不要遍历所有卡片找目标，
+      插入之后其余卡片整体位移，下一帧又会算出相反的目标，来回插 —— 手感就是抖。 */
+
+// 拖拽期间关掉页面的滚动手势；用 touch-action 而不是 overflow，
+// 这样贴边自动滚动（window.scrollBy）仍然有效。
+let scrollLock = null;
+function lockPageScroll(on) {
+  const body = document.body;
+  const html = document.documentElement;
+  if (on) {
+    if (scrollLock) return;
+    scrollLock = { ta: body.style.touchAction, ob: html.style.overscrollBehavior };
+    body.style.touchAction = 'none';
+    html.style.overscrollBehavior = 'none';
+  } else {
+    if (!scrollLock) return;
+    body.style.touchAction = scrollLock.ta;
+    html.style.overscrollBehavior = scrollLock.ob;
+    scrollLock = null;
+  }
+}
+
+function enableDragSort() {
+  // 每次渲染后都要重新绑手柄（innerHTML 会重建节点）
+  view.querySelectorAll('[data-drag]').forEach(handle => {
+    const card = handle.closest('.card');
+    if (!card) return;
+
+    const begin = (x, y) => {
+      if (dragState) return;          // 三条通道会重复触发，只认第一个
+      dragState = { id: handle.dataset.drag, el: card, startY: y, moved: false };
+      card.classList.add('dragging');
+      lockPageScroll(true);
+    };
+
+    handle.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      begin(t.clientX, t.clientY);
+      e.preventDefault();             // 别让浏览器当成滚动或长按选中
+    }, { passive: false });
+
+    // 有 Pointer Events 时用它兜桌面浏览器；触摸仍然交给 touchstart，
+    // 两边都接会导致一次按下触发两次 begin。
+    if (window.PointerEvent) {
+      handle.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'touch' || e.button !== 0) return;
+        begin(e.clientX, e.clientY);
+      });
+    }
+
+    handle.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      begin(e.clientX, e.clientY);
+      e.preventDefault();
+    });
+    handle.addEventListener('contextmenu', e => { if (dragState) e.preventDefault(); });
+    handle.addEventListener('dragstart', e => e.preventDefault());
+  });
+
+  // document 级监听只装一次，避免每次渲染叠加一堆
+  if (enableDragSort.bound) return;
+  enableDragSort.bound = true;
+
+  // 返回 true 表示这次事件属于拖拽，调用方可以去 preventDefault
+  const onMove = (x, y) => {
+    const st = dragState;
+    if (!st) return false;
+    if (!st.moved && Math.abs(y - st.startY) < 6) return true;   // 6px 死区，避免手抖误触
+    st.moved = true;
+
+    // 贴到屏幕上/下边缘时自动滚动，清单多了也能拖到底
+    const pad = 96, step = 14;
+    if (y < pad) window.scrollBy(0, -step);
+    else if (y > window.innerHeight - pad) window.scrollBy(0, step);
+
+    // 只跟「紧邻的上一张 / 下一张」比中线，越过才交换（滞回）。
+    const isCard = el => el && el.classList && el.classList.contains('card');
+
+    let next = st.el.nextElementSibling;
+    while (next && !isCard(next)) next = next.nextElementSibling;
+    if (next) {
+      const r = next.getBoundingClientRect();
+      if (y > r.top + r.height / 2) {
+        next.parentElement.insertBefore(st.el, next.nextElementSibling);
+        return true;
+      }
+    }
+
+    let prev = st.el.previousElementSibling;
+    while (prev && !isCard(prev)) prev = prev.previousElementSibling;
+    if (prev) {
+      const r = prev.getBoundingClientRect();
+      if (y < r.top + r.height / 2) {
+        prev.parentElement.insertBefore(st.el, prev);
+        return true;
+      }
+    }
+    return true;
+  };
+
+  const onEnd = () => {
+    const st = dragState;
+    if (!st) return false;
+    dragState = null;
+    lockPageScroll(false);
+    st.el.classList.remove('dragging');
+    if (!st.moved) return true;    // 只是点了一下，不算排序
+    const ids = [...view.querySelectorAll('.card')].map(c => c.dataset.id);
+    (async () => {
+      try {
+        await api('playlists/reorder', { method: 'POST', body: JSON.stringify({ ids }) });
+        ids.forEach((id, i) => {
+          const p = state.playlists.find(x => x.id === id);
+          if (p) p.sortIndex = i;
+        });
+        toast('顺序已保存');
+        render();     // 拖拽期间被跳过的状态推送，在这里补一次
+      } catch (e) { toast('排序失败：' + e.message); loadState(true); }
+    })();
+    return true;
+  };
+
+  document.addEventListener('touchmove', e => {
+    if (!dragState) return;
+    const t = e.touches[0];
+    if (!t) return;
+    if (onMove(t.clientX, t.clientY)) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchend', onEnd);
+  document.addEventListener('touchcancel', onEnd);
+  document.addEventListener('pointermove', e => {
+    if (!dragState || e.pointerType === 'touch') return;
+    if (onMove(e.clientX, e.clientY)) e.preventDefault();
+  });
+  document.addEventListener('pointerup', e => {
+    if (!dragState || e.pointerType === 'touch') return;
+    onEnd();
+  });
+  document.addEventListener('pointercancel', e => {
+    if (!dragState || e.pointerType === 'touch') return;
+    onEnd();
+  });
+  document.addEventListener('mousemove', e => {
+    if (onMove(e.clientX, e.clientY)) e.preventDefault();
+  });
+  document.addEventListener('mouseup', onEnd);
+}
+
+/* ============================ 清单编辑器 ============================ */
+function defaultPlaylist() {
+  return {
+    id: '', name: '新的播放清单', folders: [], coverFile: null,
+    music: { enabled: false, file: null, customUrl: '', tracks: [], volume: 0.7, fadeMs: 1500, loop: true },
+    effect: 'FADE', order: 'SEQUENCE', endAction: 'LOOP', staySeconds: 5, includeSubFolders: false,
+    playMode: 'AUTO', sortIndex: state.playlists.length, soundFeedback: false
+  };
+}
+
+function openPlaylistEditor(existing) {
+  const draft = existing ? JSON.parse(JSON.stringify(existing)) : defaultPlaylist();
+  if (!draft.music) draft.music = defaultPlaylist().music;
+  // 老配置（单首）在这里一次性折算成列表，之后所有逻辑只认 tracks
+  if (!Array.isArray(draft.music.tracks)) draft.music.tracks = [];
+  if (!draft.music.tracks.length) {
+    const legacy = draft.music.online ? { online: draft.music.online }
+      : draft.music.customUrl ? { url: draft.music.customUrl }
+      : draft.music.file ? { file: draft.music.file } : null;
+    if (legacy) draft.music.tracks = [legacy];
+  }
+  paintPlaylistEditor(draft, !!existing);
+}
+
+/* 曲目显示用的小工具：标题 + 来源类型 */
+function trackTitle(t) {
+  if (!t) return '（空）';
+  if (t.online) return t.online.name + (t.online.artist ? ' · ' + t.online.artist : '');
+  if (t.url) return t.url.split('/').pop() || t.url;
+  if (t.file) return (t.file.path || '').split('/').pop() || t.file.path;
+  return '（空）';
+}
+function trackKind(t) {
+  if (!t) return '';
+  if (t.online) return '在线';
+  if (t.url) return '直链';
+  return '文件';
+}
+
+function paintPlaylistEditor(draft, isEdit) {
+  const folderChips = (draft.folders || []).map((f, i) =>
+    `<span class="chip">${esc(sourceName(f.sourceId))} · ${esc(f.path || '/')}
+      <b data-rmfolder="${i}" style="color:var(--danger);margin-left:6px">×</b></span>`).join('')
+    || '<span class="chip plain">还没有选择文件夹</span>';
+
+  const tracks = draft.music.tracks || [];
+
+  modal.innerHTML = `<div class="mask">
+    <div class="sheet">
+      <header>
+        <div class="title grow">${isEdit ? '编辑播放清单' : '新建播放清单'}</div>
+        <button class="btn sm ghost" id="closeEditor">关闭</button>
+      </header>
+      <div class="body">
+        <label class="field"><span>清单名称（显示在电视首页）</span>
+          <input type="text" id="plName" value="${esc(draft.name)}" placeholder="例如：全家福轮播" />
+        </label>
+
+        <div class="sec-title">内容</div>
+        <div class="chips" style="margin:0 0 10px">${folderChips}</div>
+        <div class="actions" style="margin-top:0">
+          <button class="btn sm" id="addFolder">${ICON.folder.replace('<svg','<svg style="width:15px;height:15px;vertical-align:-2px;stroke:currentColor;fill:none"')} 添加文件夹</button>
+        </div>
+
+        <div class="switch" style="margin-top:12px">
+          <div><div class="s-title">包含子文件夹</div>
+            <div class="s-sub">递归播放所选文件夹下的所有层级</div></div>
+          <input type="checkbox" id="subFolders" ${draft.includeSubFolders ? 'checked' : ''} />
+          <label class="toggle" for="subFolders"></label>
+        </div>
+
+        <label class="field"><span>封面（留空则自动取第一张图）</span>
+          <div class="actions" style="margin-top:0">
+            <button class="btn sm" id="pickCover">选择封面图</button>
+            <button class="btn sm ghost" id="clearCover">清除</button>
+          </div>
+          <div class="meta" style="margin-top:8px">${draft.coverFile ? esc(draft.coverFile.path) : '自动'}</div>
+        </label>
+
+        <div class="sec-title">背景音乐</div>
+        <div class="switch">
+          <div><div class="s-title">启用背景音乐</div>
+            <div class="s-sub">音乐音量独立于系统音量</div></div>
+          <input type="checkbox" id="musicOn" ${draft.music.enabled ? 'checked' : ''} />
+          <label class="toggle" for="musicOn"></label>
+        </div>
+        <div class="card" style="box-shadow:none;margin:10px 0 12px;padding:12px">
+          <div class="meta" style="margin-top:0">${tracks.length
+            ? '音乐列表（' + tracks.length + ' 首，按顺序循环）'
+            : '还没有音乐。可以加电视/NAS 上的音频文件、一条 http 直链，或直接搜在线歌曲。'}</div>
+          ${tracks.length ? `<div class="tracks">${tracks.map((t, i) => `<div class="track">
+              <span class="tno">${i + 1}</span>
+              <div class="grow tinfo">
+                <div class="tname">${esc(trackTitle(t))}</div>
+                <div class="tkind">${esc(trackKind(t))}</div>
+              </div>
+              <button class="icobtn" data-uptrack="${i}" aria-label="上移">↑</button>
+              <button class="icobtn" data-downtrack="${i}" aria-label="下移">↓</button>
+              <button class="icobtn danger" data-rmtrack="${i}" aria-label="移除">×</button>
+            </div>`).join('')}</div>` : ''}
+          <div class="actions" style="margin-top:12px">
+            <button class="btn sm primary" id="pickMusic">＋ 音乐文件（可多选）</button>
+            <button class="btn sm" id="searchOnline">＋ 在线音乐</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;margin-top:12px">
+            <label class="field grow" style="margin:0"><span>直链</span>
+              <input type="text" id="musicUrl" value="${esc(draft.__urlInput || '')}" placeholder="https://example.com/bgm.mp3" />
+            </label>
+            <button class="btn sm" id="addUrl">添加</button>
+          </div>
+          ${tracks.length ? '<div class="actions" style="margin-top:8px"><button class="btn sm ghost" id="clearMusic">清空音乐</button></div>' : ''}
+        </div>
+
+        <div class="row2">
+          <label class="field"><span id="volLabel">音量 ${Math.round((draft.music.volume || 0) * 100)}%</span>
+            <input type="range" id="musicVol" min="0" max="100" value="${Math.round((draft.music.volume || 0) * 100)}" />
+          </label>
+          <label class="field"><span>淡入淡出（毫秒）</span>
+            <input type="number" id="fadeMs" value="${draft.music.fadeMs || 0}" min="0" step="100" />
+          </label>
+        </div>
+        <div class="switch">
+          <div><div class="s-title">循环播放音乐</div></div>
+          <input type="checkbox" id="musicLoop" ${draft.music.loop ? 'checked' : ''} />
+          <label class="toggle" for="musicLoop"></label>
+        </div>
+
+        <div class="sec-title">播放设置</div>
+        <label class="field"><span>切换动效</span>
+          <select id="effect">${Object.entries(EFFECTS).map(([k, v]) =>
+            `<option value="${k}" ${draft.effect === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        </label>
+        <label class="field"><span>播放模式</span>
+          <select id="playMode">${Object.entries(MODES).map(([k, v]) =>
+            `<option value="${k}" ${draft.playMode === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        </label>
+        <label class="field"><span>播放顺序</span>
+          <select id="order">${Object.entries(ORDERS).map(([k, v]) =>
+            `<option value="${k}" ${draft.order === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        </label>
+        <label class="field"><span>播完之后</span>
+          <select id="endAction">${Object.entries(END_ACTIONS).map(([k, v]) =>
+            `<option value="${k}" ${(draft.endAction || 'LOOP') === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        </label>
+        <label class="field"><span>每张停留时长（秒，仅自动模式生效）</span>
+          <input type="number" id="stay" min="1" max="600" value="${draft.staySeconds || 5}" />
+        </label>
+      </div>
+      <div class="foot">
+        <button class="btn ghost" id="cancelEditor">取消</button>
+        <button class="btn primary" id="saveEditor">保存</button>
+      </div>
+    </div>
+  </div>`;
+
+  $('#plName').oninput = e => draft.name = e.target.value;
+  $('#subFolders').onchange = e => draft.includeSubFolders = e.target.checked;
+  $('#musicOn').onchange = e => draft.music.enabled = e.target.checked;
+  // 直链输入框只是"待添加"的草稿，不直接写进音乐配置，避免打字时把已有列表清空
+  const urlField = $('#musicUrl');
+  if (urlField) urlField.oninput = e => { draft.__urlInput = e.target.value; };
+  $('#musicVol').oninput = e => {
+    draft.music.volume = Number(e.target.value) / 100;
+    $('#volLabel').textContent = '音量 ' + e.target.value + '%';
+  };
+  $('#fadeMs').oninput = e => draft.music.fadeMs = Number(e.target.value) || 0;
+  $('#musicLoop').onchange = e => draft.music.loop = e.target.checked;
+  $('#effect').onchange = e => draft.effect = e.target.value;
+  $('#playMode').onchange = e => draft.playMode = e.target.value;
+  $('#order').onchange = e => draft.order = e.target.value;
+  const endActionSel = $('#endAction');
+  if (endActionSel) endActionSel.onchange = e => draft.endAction = e.target.value;
+  $('#stay').oninput = e => draft.staySeconds = Math.max(1, Number(e.target.value) || 5);
+
+  $('#closeEditor').onclick = closeModals;
+  $('#cancelEditor').onclick = closeModals;
+
+  modal.querySelectorAll('[data-rmfolder]').forEach(b => b.onclick = () => {
+    draft.folders.splice(Number(b.dataset.rmfolder), 1);
+    paintPlaylistEditor(draft, isEdit);
+  });
+
+  modal.querySelectorAll('[data-rmtrack]').forEach(b => b.onclick = () => {
+    draft.music.tracks.splice(Number(b.dataset.rmtrack), 1);
+    paintPlaylistEditor(draft, isEdit);
+  });
+
+  modal.querySelectorAll('[data-uptrack]').forEach(b => b.onclick = () => {
+    const i = Number(b.dataset.uptrack);
+    if (i > 0) {
+      const t = draft.music.tracks.splice(i, 1)[0];
+      draft.music.tracks.splice(i - 1, 0, t);
+      paintPlaylistEditor(draft, isEdit);
+    }
+  });
+
+  modal.querySelectorAll('[data-downtrack]').forEach(b => b.onclick = () => {
+    const i = Number(b.dataset.downtrack);
+    if (i < draft.music.tracks.length - 1) {
+      const t = draft.music.tracks.splice(i, 1)[0];
+      draft.music.tracks.splice(i + 1, 0, t);
+      paintPlaylistEditor(draft, isEdit);
+    }
+  });
+
+  $('#addFolder').onclick = () => {
+    openPicker({
+      mode: 'folders', multiple: true,
+      onDone: refs => {
+        const merged = (draft.folders || []).concat(refs);
+        const seen = new Set();
+        draft.folders = merged.filter(f => {
+          const k = f.sourceId + '|' + f.path;
+          if (seen.has(k)) return false;
+          seen.add(k); return true;
+        });
+        paintPlaylistEditor(draft, isEdit);
+      }
+    });
+  };
+
+  $('#pickCover').onclick = () => {
+    openPicker({
+      mode: 'image', multiple: false,
+      onDone: refs => { if (refs[0]) draft.coverFile = refs[0]; paintPlaylistEditor(draft, isEdit); }
+    });
+  };
+  $('#clearCover').onclick = () => { draft.coverFile = null; paintPlaylistEditor(draft, isEdit); };
+
+  $('#pickMusic').onclick = () => {
+    openPicker({
+      mode: 'audio', multiple: true,
+      onDone: refs => {
+        if (refs && refs.length) {
+          if (!Array.isArray(draft.music.tracks)) draft.music.tracks = [];
+          const seen = new Set(draft.music.tracks.map(t => t.file ? t.file.sourceId + '|' + t.file.path : ''));
+          refs.forEach(ref => {
+            const k = ref.sourceId + '|' + ref.path;
+            if (seen.has(k)) return;
+            seen.add(k);
+            draft.music.tracks.push({ file: ref });
+          });
+          draft.music.enabled = true;
+        }
+        paintPlaylistEditor(draft, isEdit);
+      }
+    });
+  };
+
+  const addUrlBtn = $('#addUrl');
+  if (addUrlBtn) addUrlBtn.onclick = () => {
+    const input = $('#musicUrl');
+    const url = ((input && input.value) || draft.__urlInput || '').trim();
+    if (!url) { toast('先填一个 http/https 地址'); return; }
+    if (!/^https?:\/\//i.test(url)) { toast('地址要以 http:// 或 https:// 开头'); return; }
+    if (!Array.isArray(draft.music.tracks)) draft.music.tracks = [];
+    if (draft.music.tracks.some(t => (t.url || '') === url)) { toast('这条直链已经在列表里'); return; }
+    draft.music.tracks.push({ url: url });
+    draft.music.enabled = true;
+    draft.__urlInput = '';
+    paintPlaylistEditor(draft, isEdit);
+    toast('已添加直链');
+  };
+
+  const clearMusicBtn = $('#clearMusic');
+  if (clearMusicBtn) clearMusicBtn.onclick = () => {
+    draft.music.tracks = [];
+    draft.music.file = null;
+    draft.music.customUrl = '';
+    draft.music.online = null;
+    paintPlaylistEditor(draft, isEdit);
+  };
+
+  $('#searchOnline').onclick = () => openOnlineSearch(song => {
+    if (!Array.isArray(draft.music.tracks)) draft.music.tracks = [];
+    const dup = draft.music.tracks.some(t => t.online && t.online.id === song.id && t.online.source === song.source);
+    if (!dup) draft.music.tracks.push({ online: song });
+    draft.music.enabled = true;
+    paintPlaylistEditor(draft, isEdit);
+    toast(dup ? '「' + song.name + '」已经在列表里' : '已添加「' + song.name + '」');
+  });
+
+  $('#saveEditor').onclick = async () => {
+    if (!draft.name || !draft.name.trim()) { toast('请填写清单名称'); return; }
+    if (!draft.folders || !draft.folders.length) { toast('至少选择一个文件夹'); return; }
+    const payload = JSON.parse(JSON.stringify(draft));
+    delete payload.cachedCount;
+    delete payload.__urlInput;
+    // 老字段跟第一首同步：电视端和旧版本读的还是 file/customUrl/online
+    const t0 = (payload.music.tracks || [])[0];
+    if (t0) {
+      payload.music.file = t0.file || null;
+      payload.music.customUrl = t0.url || '';
+      payload.music.online = t0.online || null;
+    }
+    try {
+      if (isEdit) {
+        await api('playlists/' + payload.id, { method: 'PUT', body: JSON.stringify(payload) });
+      } else {
+        // 新建必须「不带 id」：带 id:'' 会被服务端当成一条真实清单存下来，
+        // 之后再新建又提交空串，就命中同一条把它覆盖 —— 表现就是"加一个就少一个"。
+        // 删掉字段让服务端分配 UUID。
+        delete payload.id;
+        await api('playlists', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeModals();
+      toast('已保存，电视端会自动刷新');
+      loadState(true);
+    } catch (e) { toast('保存失败：' + e.message); }
+  };
+}
+
+/* ============================ 存储源 ============================ */
+function renderSources() {
+  if (!state.sources.length) {
+    view.innerHTML = `<div class="page-title">存储源</div>
+      <div class="page-desc">支持本地文件夹、WebDAV、SMB 共享</div>
+      <div class="empty"><div class="big">🗄</div>还没有存储源</div>
+      <button class="fab" id="addSrc">${ICON.plus} 添加存储源</button>`;
+    $('#addSrc').onclick = () => openSourceEditor(null);
+    return;
+  }
+
+  view.innerHTML = `<div class="page-title">存储源</div>
+    <div class="page-desc">共 ${state.sources.length} 个 · 密码加密保存在电视上</div>`
+    + state.sources.map(s => {
+      const detail = s.type === 'LOCAL'
+        ? (s.localPaths || []).join('、') || '未选择目录'
+        : s.type === 'WEBDAV'
+          ? `${s.secure ? 'https' : 'http'}://${s.host}${s.port ? ':' + s.port : ''}${s.shareName || '/'}`
+          : `smb://${s.host}/${(s.shareName || '').replace(/^\/+|\/+$/g, '')}`;
+      return `<div class="card">
+        <div class="top">
+          <div class="grow">
+            <div class="title">${esc(s.name)}</div>
+            <div class="meta"><span class="badge">${TYPES[s.type] || s.type}</span>
+              <span class="badge" id="st-${esc(s.id)}">未检测</span></div>
+            <div class="meta" style="margin-top:6px;word-break:break-all">${esc(detail)}</div>
+            <div class="meta">${s.hasPassword ? '已保存密码' : '无密码'}${s.username ? ' · ' + esc(s.username) : ''}</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn sm" data-test="${esc(s.id)}">测试连接</button>
+          <button class="btn sm ghost" data-sedit="${esc(s.id)}">编辑</button>
+          <button class="btn sm danger" data-sdel="${esc(s.id)}">删除</button>
+        </div>
+      </div>`;
+    }).join('')
+    + `<button class="fab" id="addSrc">${ICON.plus} 添加存储源</button>`;
+
+  $('#addSrc').onclick = () => openSourceEditor(null);
+  view.querySelectorAll('[data-sedit]').forEach(b => b.onclick = () => {
+    const s = state.sources.find(x => x.id === b.dataset.sedit);
+    if (s) openSourceEditor(s);
+  });
+  view.querySelectorAll('[data-sdel]').forEach(b => b.onclick = async () => {
+    const s = state.sources.find(x => x.id === b.dataset.sdel);
+    if (!confirm(`删除存储源「${s ? s.name : ''}」？引用它的清单会同时移除该源。`)) return;
+    try { await api('sources/' + b.dataset.sdel, { method: 'DELETE' }); toast('已删除'); loadState(true); }
+    catch (e) { toast('删除失败：' + e.message); }
+  });
+  view.querySelectorAll('[data-test]').forEach(b => b.onclick = async () => {
+    const badge = $('#st-' + b.dataset.test);
+    if (badge) { badge.textContent = '检测中…'; badge.className = 'badge'; }
+    try {
+      const r = await api(`sources/${b.dataset.test}/test`, { method: 'POST' });
+      if (badge) {
+        badge.textContent = r.ok ? '在线' : (r.state === 'AUTH_FAILED' ? '认证失败' : '离线');
+        badge.className = 'badge ' + (r.ok ? 'ok' : 'bad');
+      }
+      toast(r.message || (r.ok ? '连接正常' : '连接失败'));
+    } catch (e) { toast('测试失败：' + e.message); }
+  });
+}
+
+function openSourceEditor(existing) {
+  const draft = existing ? JSON.parse(JSON.stringify(existing))
+    : { id: '', name: '', type: 'LOCAL', localPaths: [], host: subnetPrefix(), port: 0, shareName: '',
+        username: '', password: '', secure: false, enabled: true, hasPassword: false };
+
+  const paint = () => {
+    const isLocal = draft.type === 'LOCAL';
+    modal.innerHTML = `<div class="mask">
+      <div class="sheet">
+        <header>
+          <div class="title grow">${existing ? '编辑存储源' : '添加存储源'}</div>
+          <button class="btn sm ghost" id="closeSrc">关闭</button>
+        </header>
+        <div class="body">
+          <label class="field"><span>名称</span>
+            <input type="text" id="sName" value="${esc(draft.name)}" placeholder="例如：客厅 NAS" />
+          </label>
+          <label class="field"><span>类型</span>
+            <select id="sType">${Object.entries(TYPES).map(([k, v]) =>
+              `<option value="${k}" ${draft.type === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          </label>
+
+          ${isLocal ? `
+            <div class="sec-title">本地文件夹</div>
+            <div class="chips" style="margin:0 0 10px">${(draft.localPaths || []).map((p, i) =>
+              `<span class="chip">${esc(p)}<b data-rmlocal="${i}" style="color:var(--danger);margin-left:6px">×</b></span>`
+            ).join('') || '<span class="chip plain">未选择</span>'}</div>
+            <div class="actions" style="margin-top:0">
+              <button class="btn sm primary" id="pickLocal">浏览电视上的文件夹</button>
+            </div>
+            <div class="hint">点击后会列出电视本机的真实目录，勾选即可，不用手打路径。</div>
+            <label class="field"><span>也可以手动填写（每行一个，一般用不到）</span>
+              <textarea id="localManual" rows="2" placeholder="/storage/emulated/0/Pictures">${esc((draft.localPaths || []).join('\n'))}</textarea>
+            </label>
+          ` : `
+            <label class="field"><span>主机地址${draft.type === 'WEBDAV' ? '（可带端口）' : ''}</span>
+              <input type="text" id="sHost" value="${esc(draft.host)}" placeholder="${esc(subnetPrefix() + '10')}" />
+            </label>
+            <div class="row2">
+              <label class="field"><span>端口（0 = 默认）</span>
+                <input type="number" id="sPort" value="${draft.port || 0}" />
+              </label>
+              <label class="field"><span>${draft.type === 'WEBDAV' ? '路径' : '共享文件夹'}</span>
+                <input type="text" id="sShare" value="${esc(draft.shareName)}"
+                  placeholder="${draft.type === 'WEBDAV' ? '/dav/photos' : 'photos'}" />
+              </label>
+            </div>
+            <label class="field"><span>用户名${draft.type === 'SMB' ? '（域用户写 域\\用户）' : ''}</span>
+              <input type="text" id="sUser" value="${esc(draft.username)}" autocapitalize="off" autocorrect="off" />
+            </label>
+            <label class="field"><span>密码${draft.hasPassword ? '（已保存，留空则不修改）' : ''}</span>
+              <input type="password" id="sPass" value="" placeholder="${draft.hasPassword ? '••••••' : '输入密码'}" />
+            </label>
+            ${draft.type === 'WEBDAV' ? `
+              <div class="switch">
+                <div><div class="s-title">使用 HTTPS</div>
+                  <div class="s-sub">自签证书可能连接失败</div></div>
+                <input type="checkbox" id="sSecure" ${draft.secure ? 'checked' : ''} />
+                <label class="toggle" for="sSecure"></label>
+              </div>` : ''}
+          `}
+        </div>
+        <div class="foot">
+          <button class="btn ghost" id="cancelSrc">取消</button>
+          <button class="btn primary" id="saveSrc">保存</button>
+        </div>
+      </div>
+    </div>`;
+
+    $('#closeSrc').onclick = closeModals;
+    $('#cancelSrc').onclick = closeModals;
+    $('#sName').oninput = e => draft.name = e.target.value;
+    $('#sType').onchange = e => { draft.type = e.target.value; paint(); };
+
+    if (draft.type === 'LOCAL') {
+      $('#localManual').oninput = e => {
+        draft.localPaths = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
+      };
+      modal.querySelectorAll('[data-rmlocal]').forEach(b => b.onclick = () => {
+        draft.localPaths.splice(Number(b.dataset.rmlocal), 1);
+        paint();
+      });
+      // 真正的文件夹对话框：列出电视本机目录，多选
+      $('#pickLocal').onclick = () => {
+        openFsPicker({
+          multiple: true,
+          selected: draft.localPaths || [],
+          onDone: paths => {
+            const seen = new Set();
+            draft.localPaths = paths.filter(p => {
+              if (seen.has(p)) return false;
+              seen.add(p); return true;
+            });
+            paint();
+          }
+        });
+      };
+    } else {
+      $('#sHost').oninput = e => draft.host = e.target.value.trim();
+      $('#sPort').oninput = e => draft.port = Number(e.target.value) || 0;
+      $('#sShare').oninput = e => draft.shareName = e.target.value.trim();
+      $('#sUser').oninput = e => draft.username = e.target.value.trim();
+      $('#sPass').oninput = e => draft.password = e.target.value;
+      const secureEl = $('#sSecure');
+      if (secureEl) secureEl.onchange = e => draft.secure = e.target.checked;
+    }
+
+    $('#saveSrc').onclick = async () => {
+      if (!draft.name || !draft.name.trim()) { toast('请填写名称'); return; }
+      if (draft.type === 'LOCAL' && !(draft.localPaths || []).length) { toast('请至少选择一个本地目录'); return; }
+      if (draft.type !== 'LOCAL' && !draft.host) { toast('请填写主机地址'); return; }
+      const payload = JSON.parse(JSON.stringify(draft));
+      try {
+        if (existing) await api('sources/' + existing.id, { method: 'PUT', body: JSON.stringify(payload) });
+        else await api('sources', { method: 'POST', body: JSON.stringify(payload) });
+        closeModals();
+        toast('已保存');
+        loadState(true);
+      } catch (e) { toast('保存失败：' + e.message); }
+    };
+  };
+
+  paint();
+}
+
+/* ============================ 电视本机文件系统对话框 ============================ */
+/* 用于本地存储源选目录：直接读电视上的真实目录，避免让用户手打绝对路径 */
+function openFsPicker({ multiple = false, selected = [], onDone }) {
+  let path = '';
+  let picked = selected.slice();
+  let data = null;
+
+  async function load() {
+    try {
+      data = await api('fs' + (path ? '?path=' + encodeURIComponent(path) : ''));
+      if (data && data.path) path = data.path;
+    } catch (e) {
+      data = { path, dirs: [], shortcuts: [], canUp: false, error: e.message };
+      toast('读取目录失败：' + e.message);
+    }
+    paintFs();
+  }
+
+  function paintFs() {
+    const shortcuts = (data.shortcuts || []).filter(s => !picked.includes(s.path));
+    const rows = (data.dirs || []).map((d, i) => {
+      const on = picked.includes(d.path);
+      return `<div class="entry">
+        <span class="ico">${ICON.folder}</span>
+        <span class="name" data-nav="${i}">${esc(d.name)}</span>
+        <input type="checkbox" data-dir="${i}" ${on ? 'checked' : ''} />
+      </div>`;
+    }).join('') || `<div class="empty" style="padding:30px 10px">
+        ${esc(data.error || '这个目录下没有子文件夹')}</div>`;
+
+    const chipHtml = picked.map((p, i) =>
+      `<span class="chip">${esc(p)}<b data-unpick="${i}" style="color:var(--danger);margin-left:6px">×</b></span>`
+    ).join('') || '<span class="chip plain">还没有选择</span>';
+
+    const canAddHere = path && !picked.includes(path);
+
+    modal2.innerHTML = `<div class="mask"><div class="sheet">
+      <header>
+        <button class="btn sm ghost" id="fsUp" ${data.canUp ? '' : 'disabled'}>上级</button>
+        <div class="title grow">选择文件夹</div>
+        <button class="btn sm ghost" id="fsClose">关闭</button>
+      </header>
+      <div class="body">
+        <div class="crumb">📺 <b>${esc(path || '/')}</b></div>
+        ${shortcuts.length ? `<div class="srcpick">${shortcuts.map((s, i) =>
+          `<button class="btn sm" data-jump="${i}">${esc(s.name)}</button>`).join('')}</div>` : ''}
+        <div class="actions" style="margin:0 0 10px">
+          <button class="btn sm ghost" id="fsAddHere" ${canAddHere ? '' : 'disabled'}>
+            ＋ 加入当前文件夹</button>
+          <span class="hint" style="margin:0 0 0 10px">进到想加的文件夹，直接点「确定」也行</span>
+        </div>
+        ${rows}
+      </div>
+      <div class="foot" style="flex-direction:column;align-items:stretch;gap:9px">
+        <div class="chips" style="margin:0">${chipHtml}</div>
+        <button class="btn primary wide" id="fsConfirm" ${picked.length || path ? '' : 'disabled'}>
+          ${picked.length ? '确定（' + picked.length + '）' : (path ? '确定 · 用当前文件夹' : '确定')}</button>
+      </div>
+    </div></div>`;
+
+    $('#fsClose').onclick = closeModals2;
+    $('#fsUp').onclick = () => {
+      if (!data.canUp || !data.parent) return;
+      path = data.parent; load();
+    };
+    modal2.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
+      path = shortcuts[Number(b.dataset.jump)].path; load();
+    });
+    modal2.querySelectorAll('[data-nav]').forEach(el => el.onclick = () => {
+      path = data.dirs[Number(el.dataset.nav)].path; load();
+    });
+    modal2.querySelectorAll('[data-dir]').forEach(cb => cb.onchange = () => {
+      const p = data.dirs[Number(cb.dataset.dir)].path;
+      if (cb.checked) { if (!picked.includes(p)) picked.push(p); }
+      else picked = picked.filter(x => x !== p);
+      paintFs();
+    });
+    modal2.querySelectorAll('[data-unpick]').forEach(b => b.onclick = () => {
+      picked.splice(Number(b.dataset.unpick), 1);
+      paintFs();
+    });
+    const addHere = $('#fsAddHere');
+    if (addHere) addHere.onclick = () => {
+      if (!path) return;
+      picked.push(path);
+      paintFs();
+    };
+    $('#fsConfirm').onclick = () => {
+      // 什么都没勾但已经进了某个目录 → 直接拿这个目录，不必先点「加入当前文件夹」
+      if (picked.length) {
+        onDone(picked);
+      } else if (path) {
+        onDone([path]);
+      } else {
+        return;
+      }
+      closeModals2();
+    };
+  }
+
+  load();
+}
+
+/* ============================ 在线音乐搜索 ============================ */
+/* 走电视自己的 /api/music/search：内置直连（网易云+酷我）和自建聚合服务共用同一入口，
+   也不存在跨域问题，手机上不需要额外配置任何东西 */
+function openOnlineSearch(onPick) {
+  const modeTip = state.musicServerUrl ? '自建聚合服务' : '内置直连：网易云 + 酷我';
+
+  modal2.innerHTML = `<div class="mask"><div class="sheet">
+    <header>
+      <div class="title grow">搜索在线音乐</div>
+      <button class="btn sm ghost" id="osClose">关闭</button>
+    </header>
+    <div class="body">
+      <div class="row2" style="gap:8px">
+        <input type="text" id="osKeyword" placeholder="歌名或歌手，如 周杰伦" style="flex:1" />
+        <button class="btn primary" id="osGo">搜索</button>
+      </div>
+      <div class="hint" style="margin:8px 0 12px">${esc(modeTip)} · 搜索由电视完成；先「试听」确认能放，再「选用」</div>
+      <div id="osResults"><div class="empty" style="padding:30px 10px">输入关键词开始搜索</div></div>
+    </div>
+  </div></div>
+  <audio id="osAudio" preload="none" style="display:none"></audio>`;
+
+  $('#osClose').onclick = closeModals2;
+
+  const run = async () => {
+    const q = $('#osKeyword').value.trim();
+    if (!q) { toast('请输入关键词'); return; }
+    const box = $('#osResults');
+    box.innerHTML = '<div class="empty" style="padding:30px 10px">搜索中…</div>';
+    try {
+      const data = await api(`music/search?q=${encodeURIComponent(q)}`);
+      const songs = (data.songs || []).filter(x => x.id && x.source);
+      if (!songs.length) {
+        box.innerHTML = `<div class="empty" style="padding:30px 10px">没有搜到结果${data.error ? '：' + esc(data.error) : ''}</div>`;
+        return;
+      }
+      box.innerHTML = songs.map((x, i) => `<div class="entry">
+        <span class="ico">🎵</span>
+        <span class="name" data-song="${i}" style="cursor:pointer">${esc(x.name)}
+          <span class="meta" style="display:block;margin:0">${esc(x.artist || '未知歌手')} · ${esc(x.source)}${x.vip ? ' · VIP' : ''}</span>
+        </span>
+        <button class="btn sm ghost" data-preview="${i}">试听</button>
+        <button class="btn sm primary" data-pick="${i}">选用</button>
+      </div>`).join('');
+
+      const audio = $('#osAudio');
+      const cache = {};
+      let playing = -1;
+      const stopAll = () => {
+        try { audio.pause(); } catch (e) {}
+        audio.removeAttribute('src');
+        playing = -1;
+        box.querySelectorAll('[data-preview]').forEach(b => b.textContent = '试听');
+      };
+      audio.onended = stopAll;
+
+      // 让电视解析出真实播放地址，手机 <audio> 直接放（不用电视中转流量）
+      const probe = async i => {
+        if (cache[i]) return cache[i];
+        const x = songs[i];
+        const qs = new URLSearchParams({
+          id: x.id, source: x.source, name: x.name || '', artist: x.artist || '',
+          album: x.album || '', cover: x.cover || '', vip: x.vip ? '1' : '0',
+          extra: x.extraJson || ''
+        });
+        const r = await api('music/probe?' + qs.toString());
+        if (!r || !r.ok || !r.url) throw new Error((r && r.error) || '这首歌无法访问');
+        cache[i] = r.url;
+        return r.url;
+      };
+
+      box.querySelectorAll('[data-preview]').forEach(btn => btn.onclick = async e => {
+        e.stopPropagation();
+        const i = Number(btn.dataset.preview);
+        if (playing === i) { stopAll(); return; }
+        stopAll();
+        btn.textContent = '测试中…';
+        try {
+          const url = await probe(i);
+          audio.src = url;
+          await audio.play();
+          playing = i;
+          btn.textContent = '停止';
+        } catch (err) {
+          btn.textContent = '试听';
+          toast('无法播放：' + err.message);
+        }
+      });
+
+      const pickOne = async (i, btn) => {
+        const old = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = '测试中…'; }
+        try {
+          await probe(i);           // 选用前自动测试，放不了就不写进清单
+          stopAll();
+          onPick(songs[i]);
+          closeModals2();
+        } catch (err) {
+          if (btn) { btn.disabled = false; btn.textContent = old; }
+          toast('无法播放：' + err.message + '，换一首试试');
+        }
+      };
+
+      box.querySelectorAll('[data-pick]').forEach(btn => btn.onclick = e => {
+        e.stopPropagation();
+        pickOne(Number(btn.dataset.pick), btn);
+      });
+      box.querySelectorAll('[data-song]').forEach(el => el.onclick = () => {
+        const i = Number(el.dataset.song);
+        pickOne(i, box.querySelector('[data-pick="' + i + '"]'));
+      });
+    } catch (e) {
+      box.innerHTML = `<div class="empty" style="padding:30px 10px">搜索失败：${esc(e.message)}<br/>
+        检查手机能否访问该地址、服务是否已启动</div>`;
+    }
+  };
+
+  $('#osGo').onclick = run;
+  $('#osKeyword').onkeydown = e => { if (e.key === 'Enter') run(); };
+}
+
+/* ============================ 存储源内容选择器 ============================ */
+function openPicker({ mode = 'folders', multiple = true, sourceId = '', path = '', onDone }) {
+  let pick = {
+    sourceId: sourceId || (state.sources[0] && state.sources[0].id) || '',
+    path: path,
+    selected: [],
+    entries: []
+  };
+
+  const titleOf = () => mode === 'folders' ? '选择文件夹（可多选）'
+    : mode === 'audio' ? '选择音乐'
+    : mode === 'image' ? '选择图片'
+    : mode === 'video' ? '选择视频（可多选）' : '选择文件';
+
+  async function load() {
+    if (!pick.sourceId) {
+      modal2.innerHTML = `<div class="mask"><div class="sheet">
+        <header><div class="title grow">${titleOf()}</div>
+        <button class="btn sm ghost" id="pClose">关闭</button></header>
+        <div class="body"><div class="empty">还没有存储源<br/>请先到「存储源」页面添加。</div></div>
+      </div></div>`;
+      $('#pClose').onclick = closeModals2;
+      return;
+    }
+    try {
+      const data = await api(`browse?sourceId=${encodeURIComponent(pick.sourceId)}&path=${encodeURIComponent(pick.path)}`);
+      pick.entries = data.entries || [];
+    } catch (e) {
+      pick.entries = [];
+      toast('读取目录失败：' + e.message);
+    }
+    paint();
+  }
+
+  function accept(entry) {
+    return entry.dir ? (mode === 'folders')
+      : (mode === 'image' ? entry.kind === 'image'
+        : mode === 'audio' ? entry.kind === 'audio'
+        : mode === 'video' ? entry.kind === 'video' : true);
+  }
+
+  function paint() {
+    const srcSwitch = state.sources.length > 1 ? `<div class="srcpick">${state.sources.map(s =>
+      `<button class="btn sm ${s.id === pick.sourceId ? 'active' : ''}" data-src="${esc(s.id)}">${esc(s.name)}</button>`
+    ).join('')}</div>` : '';
+
+    const rows = pick.entries.map((e, i) => {
+      const ok = accept(e);
+      const icon = e.dir ? ICON.folder
+        : e.kind === 'audio' ? ICON.audio
+        : e.kind === 'video' ? ICON.video : ICON.image;
+      // 图片直接显示缩略图：选壁纸/封面时"看图选"比"看文件名猜"快得多
+      const lead = (!e.dir && e.kind === 'image')
+        ? `<img class="pthumb" src="${thumbUrl(pick.sourceId, e.path, 180)}" loading="lazy" alt=""
+             onerror="this.style.visibility='hidden'">`
+        : `<span class="ico">${icon}</span>`;
+      const checked = pick.selected.some(s => s.path === e.path) ? 'checked' : '';
+      return `<div class="entry">
+        ${lead}
+        <span class="name" data-nav="${e.dir ? i : -1}" style="${e.dir ? '' : 'color:var(--muted)'}">${esc(e.name)}</span>
+        ${ok ? `<input type="checkbox" data-pick="${i}" ${checked} />`
+             : `<span class="meta-r">${e.dir ? '' : '不支持'}</span>`}
+      </div>`;
+    }).join('') || '<div class="empty" style="padding:34px 10px">这个文件夹里没有可选内容</div>';
+
+    const selChips = pick.selected.map((s, i) =>
+      `<span class="chip">${esc(s.path || '/')}<b data-unsel="${i}" style="color:var(--danger);margin-left:6px">×</b></span>`
+    ).join('');
+
+    modal2.innerHTML = `<div class="mask"><div class="sheet">
+      <header>
+        <button class="btn sm ghost" id="pBack" ${pick.path ? '' : 'disabled'}>上级</button>
+        <div class="title grow">${titleOf()}</div>
+        <button class="btn sm ghost" id="pClose">关闭</button>
+      </header>
+      <div class="body">
+        ${srcSwitch}
+        <div class="crumb">${esc(sourceName(pick.sourceId))} / <b>${esc(pick.path || '/')}</b></div>
+        ${mode === 'folders' ? `<div class="actions" style="margin:0 0 10px">
+          <button class="btn sm ghost" id="pAddCurrent">＋ 加入当前文件夹</button>
+          <span class="hint" style="margin:0 0 0 10px">进到想加的文件夹，直接点「确定」也行</span></div>` : ''}
+        ${rows}
+      </div>
+      <div class="foot" style="flex-direction:column;align-items:stretch;gap:9px">
+        ${selChips ? `<div class="chips" style="margin:0">${selChips}</div>` : ''}
+        <button class="btn primary wide" id="pConfirm"
+          ${pick.selected.length || (mode === 'folders' && pick.path) ? '' : 'disabled'}>
+          ${pick.selected.length ? '确定（' + pick.selected.length + '）'
+            : (mode === 'folders' && pick.path ? '确定 · 用当前文件夹' : '确定')}
+        </button>
+      </div>
+    </div></div>`;
+
+    $('#pClose').onclick = closeModals2;
+    $('#pBack').onclick = () => {
+      if (!pick.path) return;
+      const parts = pick.path.split('/').filter(Boolean);
+      parts.pop();
+      pick.path = parts.length ? '/' + parts.join('/') : '';
+      load();
+    };
+
+    modal2.querySelectorAll('[data-src]').forEach(b => b.onclick = () => {
+      pick.sourceId = b.dataset.src; pick.path = ''; pick.selected = []; load();
+    });
+
+    modal2.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => {
+      const idx = Number(b.dataset.nav);
+      if (idx < 0) return;
+      const e = pick.entries[idx];
+      if (e.dir) { pick.path = e.path; load(); }
+    });
+
+    modal2.querySelectorAll('[data-pick]').forEach(cb => cb.onchange = () => {
+      const e = pick.entries[Number(cb.dataset.pick)];
+      const ref = { sourceId: pick.sourceId, path: e.path };
+      if (cb.checked) {
+        if (multiple) pick.selected.push(ref);
+        else pick.selected = [ref];
+      } else {
+        pick.selected = pick.selected.filter(s => s.path !== e.path);
+      }
+      paint();
+    });
+
+    modal2.querySelectorAll('[data-unsel]').forEach(b => b.onclick = () => {
+      pick.selected.splice(Number(b.dataset.unsel), 1);
+      paint();
+    });
+
+    const addCur = $('#pAddCurrent');
+    if (addCur) addCur.onclick = () => {
+      if (!pick.path) { toast('已经在根目录，先进入一个文件夹'); return; }
+      if (!pick.selected.some(s => s.path === pick.path)) {
+        pick.selected.push({ sourceId: pick.sourceId, path: pick.path });
+      }
+      paint();
+    };
+
+    const confirmBtn = $('#pConfirm');
+    if (confirmBtn) confirmBtn.onclick = () => {
+      // 勾了东西就只确认勾选的；什么都没勾但已在某个文件夹里，就把这个文件夹纳入
+      // （原来必须点「加入当前文件夹」才行，多一步，用户常以为确定按钮坏了）
+      if (pick.selected.length) {
+        onDone(pick.selected);
+        closeModals2();
+        return;
+      }
+      if (mode === 'folders' && pick.path) {
+        onDone([{ sourceId: pick.sourceId, path: pick.path }]);
+        closeModals2();
+      }
+    };
+  }
+
+  load();
+}
+
+/* ============================ 外观 ============================ */
+function renderAppearance() {
+  const a = state.appearance || {};
+  const mode = a.themeMode || 'DARK';
+  const accent = hex(a.accentColor);
+  const wpKind = a.wallpaperKind || 'GRADIENT';
+  const wpPreset = a.wallpaperPreset || 0;
+  const dim = (a.wallpaperDim == null ? 0.45 : a.wallpaperDim);
+
+  view.innerHTML = `<div class="page-title">外观</div>
+    <div class="page-desc">改完立即生效，电视端同步换肤</div>
+
+    <div class="sec-title">主题模式</div>
+    <div class="segmented" id="segTheme">
+      ${Object.entries(THEME_NAMES).map(([k, v]) =>
+        `<button data-mode="${k}" class="${mode === k ? 'active' : ''}">${v}</button>`).join('')}
+    </div>
+
+    <div class="sec-title">强调色</div>
+    <div class="swatches" id="swatches">
+      ${ACCENTS.map(([name, v]) =>
+        `<div class="switem">
+          <button class="sw ${hex(v) === accent ? 'on' : ''}" data-accent="${hex(v)}"
+            style="background:linear-gradient(140deg, ${hex(v)}, ${shade(hex(v), 0.62)})"
+            title="${name}" aria-label="${name}"></button>
+          <span>${name}</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="sec-title">壁纸</div>
+    <div class="segmented" id="segWp">
+      <button data-wp="NONE" class="${wpKind === 'NONE' ? 'active' : ''}">纯色</button>
+      <button data-wp="GRADIENT" class="${wpKind === 'GRADIENT' ? 'active' : ''}">渐变</button>
+      <button data-wp="IMAGE" class="${wpKind === 'IMAGE' ? 'active' : ''}">我的照片</button>
+      <button data-wp="VIDEO" class="${wpKind === 'VIDEO' ? 'active' : ''}">视频</button>
+    </div>
+
+    <div id="wpBody">${wpBodyHtml(wpKind, wpPreset, dim, a)}</div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="switch" style="margin-bottom:10px">
+        <div><div class="s-title">显示播放模式角标</div>
+          <div class="s-sub">首页卡片右上角显示「自动 / 手动」</div></div>
+        <input type="checkbox" id="badgeOn" ${a.showModeBadge === false ? '' : 'checked'} />
+        <label class="toggle" for="badgeOn"></label>
+      </div>
+      <div class="hint" style="margin:0">壁纸只影响首页与设置页，播放相片时仍是全屏内容。</div>
+    </div>`;
+
+  $('#segTheme').querySelectorAll('[data-mode]').forEach(b => b.onclick = () =>
+    saveAppearance({ themeMode: b.dataset.mode }, '已切换主题'));
+
+  // 强调色必须写成 8 位 ARGB（带 0xFF 不透明位）。
+  // 只存 6 位 RGB 的话，电视端 Color() 会把它当成 alpha=0 的全透明色：
+  // 选中块画不出来、文字又按"透明底"算成白色，用户看到的就是"选中的那格看不见"。
+  $('#swatches').querySelectorAll('[data-accent]').forEach(b => b.onclick = () =>
+    saveAppearance({ accentColor: 0xFF000000 + parseInt(b.dataset.accent.slice(1), 16) }, '强调色已更新'));
+
+  $('#segWp').querySelectorAll('[data-wp]').forEach(b => b.onclick = () =>
+    saveAppearance({ wallpaperKind: b.dataset.wp }, '壁纸已更新'));
+
+  $('#badgeOn').onchange = e => saveAppearance({ showModeBadge: e.target.checked }, '已更新');
+
+  bindWpBody();
+}
+
+function wpBodyHtml(kind, preset, dim, a) {
+  if (kind === 'VIDEO') return videoBodyHtml(a);
+  if (kind === 'NONE') {
+    return `<div class="hint" style="margin:6px 2px 0">使用主题底色，最省性能，暗环境下最不干扰。</div>`;
+  }
+  if (kind === 'IMAGE') {
+    const has = a.wallpaperHasImage && a.wallpaperPath;
+    const url = has ? thumbUrl(a.wallpaperSourceId, a.wallpaperPath, 1080) : '';
+    return `<div class="card">
+      ${has
+        ? `<div class="wpscroll" id="wpScroll">
+             <img src="${url}" alt="当前壁纸"
+               onerror="this.style.display='none';var p=document.getElementById('wpPh');if(p)p.style.display='grid'">
+             <div class="ph" id="wpPh" style="display:none">这张图现在读不到，换一张试试</div>
+           </div>
+           <div class="hint" style="margin:8px 2px 0">左右滑动可以看整张图；页面背景按「铺满」裁切显示。</div>
+           <div class="meta">当前：${esc(a.wallpaperImageName || '已选图片')}</div>`
+        : `<div class="hint" style="margin:0">还没有选图片，点下面按钮从相册挑一张（会显示缩略图）</div>`}
+      <div class="actions">
+        <button class="btn sm primary" id="pickWp">${has ? '换一张' : '选择图片'}</button>
+        ${has ? '<button class="btn sm ghost" id="clearWp">移除</button>' : ''}
+      </div>
+      <label class="field" style="margin-top:14px"><span id="dimLabel">压暗程度 ${Math.round(dim * 100)}%</span>
+        <input type="range" id="dimRange" min="0" max="85" value="${Math.round(dim * 100)}" /></label>
+      <div class="hint">压暗能让桌面上的文字更好认，3 米外看电视尤其明显。</div>
+      <div class="switch" style="margin-bottom:0">
+        <div><div class="s-title">轻微模糊</div>
+          <div class="s-sub">Android 12 及以上生效</div></div>
+        <input type="checkbox" id="blurOn" ${a.wallpaperBlur ? 'checked' : ''} />
+        <label class="toggle" for="blurOn"></label>
+      </div>
+    </div>`;
+  }
+  // GRADIENT
+  return `<div class="wpgrid" id="wpgrid">${WALLPAPERS.map((p, i) =>
+    `<button class="wp ${preset === i ? 'on' : ''}" data-preset="${i}"
+      style="background:${wpCss(p, true)};background-size:cover">
+      <span>${p.name}</span></button>`).join('')}</div>
+    <div class="hint" style="margin:8px 2px 0">6 套内置壁纸，程序绘制，任意分辨率都不糊；切到浅色主题会自动换成浅色版本。</div>`;
+}
+
+
+/* ---------- 视频背景：手机上传 + 轮播清单 ---------- */
+
+function vsize(n) {
+  if (!n) return '0 MB';
+  return n < 1024 * 1024 ? Math.round(n / 1024) + ' KB'
+    : (n / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function videoBodyHtml(a) {
+  return `<div class="card" style="margin-top:14px">
+    <div class="hint" style="margin:0 0 10px">
+      视频会复制到电视本机、静音播放；多段按下面的顺序轮播。建议 1080p、30 秒以内，老盒子更稳。
+    </div>
+    <div id="vbody"><div class="hint" style="margin:0">正在读取清单…</div></div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn sm primary" id="upVideo">上传视频</button>
+      <button class="btn sm ghost" id="srcVideo">从存储源选</button>
+    </div>
+    <input type="file" id="vfile" accept="video/*" multiple hidden />
+    <div class="switch" style="margin-top:14px;margin-bottom:0">
+      <div><div class="s-title">轮播播放</div>
+        <div class="s-sub">关掉则播完最后一段停在画面上</div></div>
+      <input type="checkbox" id="vloop" ${a.wallpaperVideoLoop === false ? '' : 'checked'} />
+      <label class="toggle" for="vloop"></label>
+    </div>
+    <label class="field" style="margin-top:14px"><span id="vdimLabel">压暗程度 ${Math.round((a.wallpaperDim == null ? 0.5 : a.wallpaperDim) * 100)}%</span>
+      <input type="range" id="vdimRange" min="0" max="85" value="${Math.round((a.wallpaperDim == null ? 0.5 : a.wallpaperDim) * 100)}" /></label>
+    <div class="hint">压暗能保证首页标题在亮画面上也读得清。</div>
+  </div>`;
+}
+
+async function loadVideos() {
+  const box = $('#vbody');
+  if (!box) return;
+  try {
+    const data = await api('wallpaper/videos');
+    const clips = data.clips || [];
+    if (!clips.length) {
+      box.innerHTML = '<div class="hint" style="margin:0">还没有视频。点「上传视频」从手机相册挑，或用「从存储源选」从 NAS 里挑。</div>';
+      return;
+    }
+    box.innerHTML = clips.map((c, i) => `<div class="track">
+        <span class="tno">${i + 1}</span>
+        <div class="tinfo"><div class="tname">${esc(c.title || c.name)}</div>
+          <div class="tkind">${vsize(c.size)} · ${c.uploaded ? '手机上传' : '存储源'}</div></div>
+        <button class="icobtn" data-up="${i}" ${i === 0 ? 'disabled' : ''}>↑</button>
+        <button class="icobtn" data-down="${i}" ${i === clips.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="icobtn" data-del="${esc(c.name)}">×</button>
+      </div>`).join('')
+      + `<div class="hint" style="margin:8px 2px 0">共 ${clips.length} 段 · ${vsize(data.total)}</div>`;
+
+    const reorder = async (from, to) => {
+      if (to < 0 || to >= clips.length) return;
+      const names = clips.map(c => c.name);
+      const moved = names.splice(from, 1)[0];
+      names.splice(to, 0, moved);
+      try {
+        await api('wallpaper/videos/reorder', { method: 'POST', body: JSON.stringify({ names }) });
+        loadVideos();
+      } catch (e) { toast('排序失败：' + e.message); }
+    };
+
+    box.querySelectorAll('[data-up]').forEach(b => b.onclick = () => reorder(Number(b.dataset.up), Number(b.dataset.up) - 1));
+    box.querySelectorAll('[data-down]').forEach(b => b.onclick = () => reorder(Number(b.dataset.down), Number(b.dataset.down) + 1));
+    box.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+      const name = b.dataset.del;
+      if (!confirm('删掉这一段视频？本机副本也会一起删。')) return;
+      try {
+        const r = await api('wallpaper/videos/remove', { method: 'POST', body: JSON.stringify({ name }) });
+        toast((r && r.message) || '已删除');
+        loadVideos();
+      } catch (e) { toast('删除失败：' + e.message); }
+    });
+  } catch (e) {
+    box.innerHTML = `<div class="hint" style="margin:0">读取失败：${esc(e.message)}</div>`;
+  }
+}
+
+/** 单文件上传：XHR 才有上传进度（fetch 没有） */
+function uploadVideoOne(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', withPin('/api/wallpaper/upload?name=' + encodeURIComponent(file.name)));
+    if (PIN) xhr.setRequestHeader('X-Pin', PIN);
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+    };
+    xhr.onload = () => {
+      let data = null;
+      try { data = JSON.parse(xhr.responseText || 'null'); } catch (e) { data = null; }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+      else reject(new Error((data && data.message) || ('HTTP ' + xhr.status)));
+    };
+    xhr.onerror = () => reject(new Error('网络中断'));
+    xhr.send(file);
+  });
+}
+
+async function uploadVideos(files) {
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  let ok = 0, fail = 0;
+  for (let i = 0; i < list.length; i++) {
+    const f = list[i];
+    const label = `(${i + 1}/${list.length}) ${f.name}`;
+    try {
+      toast(`上传中 ${label} 0%`, 600000);
+      await uploadVideoOne(f, p => toast(`上传中 ${label} ${Math.round(p * 100)}%`, 600000));
+      ok++;
+    } catch (e) {
+      fail++;
+      toast(`「${f.name}」失败：${e.message}`);
+    }
+  }
+  state.appearance = Object.assign({}, state.appearance, { wallpaperKind: 'VIDEO' });
+  toast(fail ? `完成：成功 ${ok} 段，失败 ${fail} 段` : `已上传 ${ok} 段视频，背景已切到视频`);
+  renderAppearance();
+}
+
+function bindWpBody() {
+  if ($('#vbody')) {
+    loadVideos();
+    const up = $('#upVideo');
+    const file = $('#vfile');
+    if (up && file) {
+      up.onclick = () => file.click();
+      file.onchange = e => { uploadVideos(e.target.files); e.target.value = ''; };
+    }
+    const src = $('#srcVideo');
+    if (src) src.onclick = () => openPicker({
+      mode: 'video', multiple: true,
+      onDone: async refs => {
+        if (!refs || !refs.length) return;
+        toast('正在从存储源复制到电视，大文件需要一会儿…', 600000);
+        let ok = 0, fail = 0;
+        for (const r of refs) {
+          try {
+            await api('wallpaper/videos/add', {
+              method: 'POST',
+              body: JSON.stringify({ sourceId: r.sourceId, path: r.path })
+            });
+            ok++;
+          } catch (e) { fail++; }
+        }
+        state.appearance = Object.assign({}, state.appearance, { wallpaperKind: 'VIDEO' });
+        toast(fail ? `已添加 ${ok} 段，${fail} 段失败` : `已添加 ${ok} 段视频`);
+        renderAppearance();
+      }
+    });
+    const loop = $('#vloop');
+    if (loop) loop.onchange = e => saveAppearance({ wallpaperVideoLoop: e.target.checked }, '已更新轮播设置');
+    const dim = $('#vdimRange');
+    if (dim) {
+      // 拖动过程中只改本地预览，不发请求。
+      // 以前是 oninput 里直接 saveAppearance：手指每挪 1% 就发一次 POST，
+      // 服务端写盘 + 推 WebSocket + 前端整页重渲染，拖起来当然卡成幻灯片。
+      dim.oninput = e => {
+        const v = Number(e.target.value) / 100;
+        const l = $('#vdimLabel');
+        if (l) l.textContent = '压暗程度 ' + Math.round(v * 100) + '%';
+      };
+      // 松手才落盘
+      dim.onchange = e =>
+        saveAppearance({ wallpaperDim: Number(e.target.value) / 100 }, null);
+    }
+  }
+
+  const grid = $('#wpgrid');
+  if (grid) {
+    grid.querySelectorAll('[data-preset]').forEach(b => b.onclick = () =>
+      saveAppearance({ wallpaperKind: 'GRADIENT', wallpaperPreset: Number(b.dataset.preset) }, '壁纸已更新'));
+  }
+
+  const pickWp = $('#pickWp');
+  if (pickWp) pickWp.onclick = () => openPicker({
+    mode: 'image', multiple: false,
+    onDone: refs => {
+      if (!refs[0]) return;
+      saveAppearance({
+        wallpaperKind: 'IMAGE',
+        wallpaperSourceId: refs[0].sourceId,
+        wallpaperPath: refs[0].path
+      }, '壁纸已换成这张照片');
+    }
+  });
+
+  const clearWp = $('#clearWp');
+  if (clearWp) clearWp.onclick = () => saveAppearance({
+    clearWallpaperImage: true, wallpaperKind: 'GRADIENT'
+  }, '已移除图片壁纸');
+
+  const dimRange = $('#dimRange');
+  if (dimRange) {
+    dimRange.oninput = e => {
+      $('#dimLabel').textContent = '压暗程度 ' + e.target.value + '%';
+    };
+    dimRange.onchange = e =>
+      saveAppearance({ wallpaperDim: Number(e.target.value) / 100 }, '已调整压暗');
+  }
+
+  const blurOn = $('#blurOn');
+  if (blurOn) blurOn.onchange = e =>
+    saveAppearance({ wallpaperBlur: e.target.checked }, '已更新');
+}
+
+async function saveAppearance(patch, msg) {
+  try {
+    await api('appearance', { method: 'POST', body: JSON.stringify(patch) });
+    // 本地先合并，界面立刻响应，不必等状态往返
+    state.appearance = Object.assign({}, state.appearance, {
+      themeMode: patch.themeMode || state.appearance.themeMode,
+      accentColor: patch.accentColor || state.appearance.accentColor,
+      wallpaperKind: patch.wallpaperKind || state.appearance.wallpaperKind,
+      wallpaperPreset: patch.wallpaperPreset == null ? state.appearance.wallpaperPreset : patch.wallpaperPreset,
+      wallpaperDim: patch.wallpaperDim == null ? state.appearance.wallpaperDim : patch.wallpaperDim,
+      wallpaperBlur: patch.wallpaperBlur == null ? state.appearance.wallpaperBlur : patch.wallpaperBlur,
+      showModeBadge: patch.showModeBadge == null ? state.appearance.showModeBadge : patch.showModeBadge,
+      wallpaperHasImage: patch.clearWallpaperImage ? false
+        : (patch.wallpaperPath ? true : state.appearance.wallpaperHasImage),
+      wallpaperImageName: patch.wallpaperPath
+        ? patch.wallpaperPath.split('/').pop() : state.appearance.wallpaperImageName,
+      wallpaperSourceId: patch.clearWallpaperImage ? ''
+        : (patch.wallpaperSourceId || state.appearance.wallpaperSourceId || ''),
+      wallpaperPath: patch.clearWallpaperImage ? ''
+        : (patch.wallpaperPath || state.appearance.wallpaperPath || '')
+    });
+    applyAppearance();
+    render();
+    if (msg) toast(msg);
+  } catch (e) { toast('保存失败：' + e.message); }
+}
+
+/* ============================ 设置 ============================ */
+function renderSettings() {
+  view.innerHTML = `<div class="page-title">设置</div>
+    <div class="page-desc">配置页只在局域网内可访问</div>
+
+    <div class="card">
+      <div class="title">配置页访问密码</div>
+      <div class="meta">设置后，同一 Wi-Fi 下其他人打开配置页需要输入密码。</div>
+      <label class="field" style="margin-top:12px"><span>新密码</span>
+        <input type="password" id="pinInput"
+          placeholder="${state.pinRequired ? '已设置，输入新密码可修改' : '未设置'}" />
+      </label>
+      <div class="actions">
+        <button class="btn primary" id="savePin">保存密码</button>
+        <button class="btn ghost" id="clearPin">清除密码</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="title">配置服务地址</div>
+      <div class="meta" style="word-break:break-all">${state.url ? esc(state.url) : '未知'}</div>
+      <label class="field" style="margin-top:12px"><span>端口（1024-65535）</span>
+        <input type="number" id="portInput" value="8080" min="1024" max="65535" />
+      </label>
+      <div class="actions"><button class="btn" id="savePort">保存端口</button></div>
+      <div class="hint" style="margin:8px 0 0">改完需要重启电视上的应用才生效。</div>
+    </div>
+
+    <div class="card">
+      <div class="title">在线音乐</div>
+      <div class="meta">默认就能用：App 内置直连网易云 + 酷我，不需要任何服务端。
+        想让清单里也能搜 QQ / 酷狗 / 咪咕 / B站，再填一个自建的 go-music-dl 地址（可选）。</div>
+      <label class="field" style="margin-top:12px"><span>自建服务地址（可选）</span>
+        <input type="text" id="musicServer" value="${esc(state.musicServerUrl || '')}"
+          placeholder="留空 = 只用内置直连" autocapitalize="off" autocorrect="off" />
+      </label>
+      <div class="actions">
+        <button class="btn primary" id="saveMusicServer">保存</button>
+        <button class="btn ghost" id="clearMusicServer">改回内置</button>
+      </div>
+      <div class="hint">go-music-dl 本身是个自托管服务，官方没有公网地址；不填也能听歌，填了音源更多。</div>
+    </div>
+
+    <div class="card">
+      <div class="title">关于</div>
+      <div class="meta" style="margin-top:6px">拾光相册 v1.1 · 本地 / WebDAV / SMB 多源相册播放器</div>
+      <div class="meta">配置会自动推送到电视，不用手动刷新。</div>
+    </div>`;
+
+  $('#savePin').onclick = async () => {
+    const pin = $('#pinInput').value.trim();
+    if (!pin) { toast('密码不能为空，要取消密码请点「清除密码」'); return; }
+    try {
+      await api('settings', { method: 'POST', body: JSON.stringify({ pin }) });
+      PIN = pin;
+      localStorage.setItem('tv_pin', pin);
+      toast('密码已保存');
+      loadState(true);
+    } catch (e) { toast('保存失败：' + e.message); }
+  };
+
+  $('#clearPin').onclick = async () => {
+    if (!confirm('取消访问密码？之后同网段任何人都能修改配置。')) return;
+    try {
+      await api('settings', { method: 'POST', body: JSON.stringify({ clearPin: true }) });
+      PIN = '';
+      localStorage.removeItem('tv_pin');
+      toast('密码已清除');
+      loadState(true);
+    } catch (e) { toast('操作失败：' + e.message); }
+  };
+
+  $('#saveMusicServer').onclick = async () => {
+    const url = $('#musicServer').value.trim();
+    try {
+      await api('settings', { method: 'POST', body: JSON.stringify({ musicServerUrl: url }) });
+      toast(url ? '已保存，优先用这个服务的 13 个音源' : '已改回内置直连');
+      loadState(true);
+    } catch (e) { toast('保存失败：' + e.message); }
+  };
+
+  $('#clearMusicServer').onclick = async () => {
+    $('#musicServer').value = '';
+    try {
+      await api('settings', { method: 'POST', body: JSON.stringify({ musicServerUrl: '' }) });
+      toast('已改回内置直连（网易云 + 酷我）');
+      loadState(true);
+    } catch (e) { toast('操作失败：' + e.message); }
+  };
+
+  $('#savePort').onclick = async () => {
+    const port = Number($('#portInput').value);
+    if (!(port >= 1024 && port <= 65535)) { toast('端口范围 1024-65535'); return; }
+    try {
+      await api('settings', { method: 'POST', body: JSON.stringify({ port }) });
+      toast('已保存，重启电视端应用后生效');
+    } catch (e) { toast('保存失败：' + e.message); }
+  };
+}
+
+/* ============================ 公共 ============================ */
+function closeModals() { modal.innerHTML = ''; }
+function closeModals2() {
+  // 试听用的是 <audio>，节点被删掉不代表停止播放，这里显式停一次
+  try {
+    const a = document.getElementById('osAudio');
+    if (a) { a.pause(); a.removeAttribute('src'); }
+  } catch (e) {}
+  modal2.innerHTML = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModals2(); closeModals(); }
+});
+
+// 系统主题变化时，AUTO 模式下本页跟着变
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+  if ((state.appearance || {}).themeMode === 'AUTO') applyAppearance();
+});
+
+/* 启动 */
+applyAppearance();
+loadState(false).then(connectWs);
+setInterval(() => loadState(true), 20000);
+</script>
+</body>
+</html>

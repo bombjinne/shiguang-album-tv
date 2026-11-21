@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  拾光相册 · 应用图标（V1.7.2 定稿）
+
+  参考酷狗 / 哔哩哔哩那一代图标：饱和底色 + 一整块超粗白色主图形 + 大留白。
+  之前几版的问题——浅奶油底发灰、相框+山+圆点其实就是系统「图片占位图」，
+  缩到 48dp 一团糊。这版只留两个元素：
+
+  - 底：纯珊瑚橙 #FF6B4A，纯平涂。不做渐变 —— <gradient> 要 API 24+（本项目 minSdk 21），
+    而用色块拼伪渐变一定会在斜接处露脏边（试过，很难看）。酷狗、B站 也都是平涂。
+  - 主体：一整块纯白圆角卡（68×44，圆角 13），卡里挖一个珊瑚色播放三角（高 26）。
+    白块面积占比够大，远看是一块亮色方形，近看是「照片正在播放」。
+    三角按重心对齐而不是外框对齐，视觉上才正。
+
+  纯矢量、零位图：任意分辨率都不糊，也不增加包体积。
+  圆形/圆角由启动器自己裁，这里给满幅 108dp 画布 + 中心安全区。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group>
+        <clip-path
+            android:pathData="M24,0H84A24,24 0 0 1 108,24V84A24,24 0 0 1 84,108H24A24,24 0 0 1 0,84V24A24,24 0 0 1 24,0Z" />
+
+        <!-- 纯珊瑚底 -->
+        <path
+            android:fillColor="#FF6B4A"
+            android:pathData="M0,0h108v108h-108z" />
+    </group>
+
+    <!-- 白照片卡 68×44，居中 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M33,32h42a13,13 0 0 1 13,13v18a13,13 0 0 1 -13,13h-42a13,13 0 0 1 -13,-13v-18a13,13 0 0 1 13,-13z" />
+
+    <!-- 播放三角（高 26，按重心居中在卡片中心） -->
+    <path
+        android:fillColor="#FF6B4A"
+        android:pathData="M46.5,41L46.5,67L68.5,54Z" />
+</vector>

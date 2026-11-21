@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android TV 桌面横幅（320×180），矢量实现避免多套 png。
+
+  跟着 V1.7.2 的图标一起改：珊瑚橙平涂底 + 白色照片卡 + 播放三角，
+  右边三条白色渐隐条带代替文字。原来是近黑底 + 细橙框，跟新图标放同一排完全是两个应用。
+
+  为什么整个横幅用亮底：Leanback 桌面把应用名画在横幅卡片**下方**（深色背景上的白字），
+  不叠在横幅上，所以亮底不会吃掉标题；即使个别启动器叠在底部，那里也是珊瑚色，白字照样读得清。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <!-- 珊瑚底 -->
+    <path
+        android:fillColor="#FF6B4A"
+        android:pathData="M0,0h320v180h-320z" />
+
+    <!-- 底部压一条略深的珊瑚，给横幅一点重量 -->
+    <path
+        android:fillColor="#F2563B"
+        android:pathData="M0,126h320v54h-320z" />
+
+    <!-- 白色照片卡 96×60 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,58h64a16,16 0 0 1 16,16v28a16,16 0 0 1 -16,16h-64a16,16 0 0 1 -16,-16v-28a16,16 0 0 1 16,-16z" />
+
+    <!-- 卡内播放三角 -->
+    <path
+        android:fillColor="#FF6B4A"
+        android:pathData="M78,72L78,104L106,88Z" />
+
+    <!-- 右侧「标题 / 副标题 / 说明」三条白条，透明度递减 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M168,66h120a6,6 0 0 1 6,6v0a6,6 0 0 1 -6,6h-120a6,6 0 0 1 -6,-6v0a6,6 0 0 1 6,-6z" />
+    <path
+        android:fillAlpha="0.78"
+        android:fillColor="#FFFFFF"
+        android:pathData="M168,92h84a5,5 0 0 1 5,5v0a5,5 0 0 1 -5,5h-84a5,5 0 0 1 -5,-5v0a5,5 0 0 1 5,-5z" />
+    <path
+        android:fillAlpha="0.55"
+        android:fillColor="#FFFFFF"
+        android:pathData="M168,114h58a5,5 0 0 1 5,5v0a5,5 0 0 1 -5,5h-58a5,5 0 0 1 -5,-5v0a5,5 0 0 1 5,-5z" />
+</vector>

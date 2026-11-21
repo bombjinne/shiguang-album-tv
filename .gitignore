@@ -1,0 +1,22 @@
+# 构建产物与本地环境
+build/
+app/build/
+.gradle/
+.kotlin/
+local.properties
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# 本机调试时产生的临时文件（配置快照、界面 dump、截图、编译日志）
+.tmp*
+shots/
+build_log.txt
+*.log
+
+# 打包好的 APK 走 Release 上传，不进仓库
+*.apk
