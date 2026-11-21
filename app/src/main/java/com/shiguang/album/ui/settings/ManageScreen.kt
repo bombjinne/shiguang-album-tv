@@ -522,7 +522,7 @@ private fun MusicTab(
                 fontSize = 13.sp
             )
             Text(
-                "2. 默认 8080 端口，地址形如 http://192.168.31.10:8080/music",
+                "2. 默认 8080 端口，地址形如 http://192.168.1.10:8080/music",
                 color = colors.textSecondary,
                 fontSize = 13.sp
             )

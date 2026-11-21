@@ -188,8 +188,10 @@ ShiGuangAlbumTV/
 │           ├── AppRoot.kt                # 首页 / 播放 / 管理 导航
 │           ├── home/ player/ settings/ components/
 │           └── theme/Theme.kt            # 深色 + 浅色 + 强调色
+├── gradlew / gradlew.bat                 # Gradle Wrapper（Gradle 8.13）
 ├── 使用说明.md
 ├── 开发文档.md
+├── RELEASE_NOTES.md
 └── LICENSE
 ```
 
@@ -197,24 +199,24 @@ ShiGuangAlbumTV/
 
 ## 自己编译
 
-需要 JDK 17+ 与 Android SDK。工程**没有带 `gradlew`**，用本机 Gradle 8.13 即可：
+需要 JDK 17+ 与 Android SDK。工程自带 Gradle Wrapper，克隆下来就能编：
 
 ```bash
-# 调试包
-gradle assembleDebug --console=plain
-# 只验语法，改完代码先跑这个（比打包快一倍）
-gradle compileDebugKotlin --console=plain
-# 正式包
-gradle assembleRelease --console=plain
+git clone https://github.com/<你的账号>/shiguang-album-tv.git
+cd shiguang-album-tv
+
+./gradlew assembleDebug --console=plain      # Windows 用 gradlew.bat
+./gradlew compileDebugKotlin --console=plain # 只验语法，比打包快一倍
+./gradlew assembleRelease --console=plain
 ```
 
 产物在 `app/build/outputs/apk/debug/app-debug.apk`。
 
 几个容易踩的点：
 
-- `local.properties` 里的 `sdk.dir` 要改成你机器上的 SDK 路径；
+- 第一次编译前先写 `local.properties`，内容一行 `sdk.dir=<你的 SDK 路径>`（此文件不入版本库）；
 - 工程放在中文目录下时需要 `android.overridePathCheck=true`（`gradle.properties` 已带）；
-- 国内网络建议在 `settings.gradle.kts` 里把阿里云镜像放到最前；
+- 国内网络若卡在 Maven Central，`settings.gradle.kts` 里已经把阿里云镜像放在最前面；
 - `release` 默认复用 debug 签名，方便直接侧载；要正式签名见 `开发文档.md` 7.7。
 
 ---

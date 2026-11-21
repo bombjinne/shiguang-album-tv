@@ -309,7 +309,7 @@ data class AppSettings(
     /** 切换相片时是否播放轻微音效（全局开关） */
     val soundFeedback: Boolean = false,
     /**
-     * 在线音乐聚合服务地址，例如 http://192.168.31.10:8080/music
+     * 在线音乐聚合服务地址，例如 http://192.168.1.10:8080/music
      * 指向自建的 go-music-dl / music-lib 服务；留空表示只播本地与在线直链。
      */
     val musicServerUrl: String = ""
