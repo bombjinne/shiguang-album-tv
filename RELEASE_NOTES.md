@@ -14,8 +14,8 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `拾光相册-v1.7.3-release.apk` | 正式包，16 MB，推荐 |
-| `拾光相册-v1.7.3-debug.apk` | 调试包，21 MB，排查问题时用 |
+| `ShiGuangAlbumTV-v1.7.3-release.apk` | 正式包，16 MB，推荐 |
+| `ShiGuangAlbumTV-v1.7.3-debug.apk` | 调试包，21 MB，排查问题时用 |
 
 - 最低 Android 5.0（API 21），目标 Android 14（API 34）
 - 两个包都用同一把 debug 证书签名（侧载用，不从应用商店分发），可以互相覆盖升级

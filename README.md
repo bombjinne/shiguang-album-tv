@@ -71,7 +71,7 @@
 
 ```bash
 adb connect 192.168.1.x:5555     # 电视需开启「开发者选项 → 网络调试」
-adb install -r 拾光相册-v1.7.3-release.apk
+adb install -r ShiGuangAlbumTV-v1.7.3-release.apk
 ```
 
 首次打开会自带一个「电视本机」存储源（`Pictures` / `DCIM` / `Movies` / `Download`），**不会预置任何清单**，第一条要自己建。
